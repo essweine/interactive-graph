@@ -6,11 +6,22 @@ from numpy.linalg import norm
 
 class Edge(object):
 
-    def __init__(self, graph, source, target, line):
+    def __init__(self, edge_id, graph, source, target, line):
 
+        self.edge_id = edge_id
         self.graph = graph
         self.source, self.target = source, target
         self.line = line
+
+    def hide(self):
+
+        self.line.remove()
+
+    def restore(self, ax):
+
+        self.update()
+        self.line.set_figure(ax.figure)
+        ax.add_artist(self.line)
 
     def update(self):
 
