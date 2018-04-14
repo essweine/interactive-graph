@@ -61,3 +61,5 @@ class Edge(object):
             self.line.set_xdata([ src_x - dx * r1, tgt_x + dx * r2 ])
             self.line.set_ydata([ src_y - dy * r1, tgt_y + dy * r2 ])
 
+        #TODO: Arrows?
+

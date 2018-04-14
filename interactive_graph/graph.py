@@ -122,10 +122,15 @@ class InteractiveGraph(object):
         for edge_id in vertex.out_edges:
             edge = self.edges.pop(edge_id)
             tgt = self.vertices[edge.target]
-            src.remove_in_edge(edge_id)
+            tgt.remove_in_edge(edge_id)
 
         self.ax.figure.canvas.draw()
 
+    def restore_all(self):
+
+        for vx in self.hidden_vertices.keys():
+            self.restore_vertex(vx)
+            
     def reset_view(self):
 
         self.ax.set_autoscale_on(True)

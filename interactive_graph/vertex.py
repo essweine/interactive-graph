@@ -124,7 +124,7 @@ class Vertex(object):
         axes = self.circle.axes
         canvas.restore_region(self.background)
         axes.draw_artist(self.circle)
-        for edge in self.in_edges + self.out_edges:
+        for edge in self.in_edges | self.out_edges:
             artist = self.graph.edges[edge]
             artist.update()
         canvas.blit(axes.bbox)
@@ -134,7 +134,7 @@ class Vertex(object):
         if Vertex.lock is not self:
             return
 
-        for edge in self.in_edges + self.out_edges:
+        for edge in self.in_edges | self.out_edges:
             artist = self.graph.edges[edge]
             artist.update()
 
