@@ -69,14 +69,14 @@ class Vertex(object):
         if not contains:
             return
 
-        if self.graph.press_action == "drag":
-            self.drag(event)
+        if self.graph.press_action == "move":
+            self.move(event)
         elif self.graph.press_action == "hide":
             self.graph.hide_vertex(self.vertex_id)
         elif self.graph.press_action == "remove":
             self.graph.hide_vertex(self.vertex_id)
 
-    def drag(self, event):
+    def move(self, event):
 
         if Vertex.lock is not None:
             return
@@ -170,6 +170,10 @@ class Vertex(object):
         self.out_edges.remove(edge_id)
         self.hidden_out_edges.add(edge_id)
 
+    def hide_loop(self, edge_id):
+        self.loops.remove(edge_id)
+        self.hidden_loops.add(edge_id)
+
     def restore_in_edge(self, edge_id):
         self.hidden_in_edges.remove(edge_id)
         self.in_edges.add(edge_id)
@@ -177,6 +181,10 @@ class Vertex(object):
     def restore_out_edge(self, edge_id):
         self.hidden_out_edges.remove(edge_id)
         self.out_edges.add(edge_id)
+
+    def restore_loop(self, edge_id):
+        self.hidden_loops.remove(edge_id)
+        self.loops.add(edge_id)
 
     def remove_in_edge(self, edge_id):
         self.in_edges.remove(edge_id)

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 
 from vertex import Vertex
 from edge import Edge
+from exceptions import *
 
 class InteractiveGraph(object):
 
@@ -9,16 +10,14 @@ class InteractiveGraph(object):
 
         self.ax = ax
         self.ax.set_aspect("equal")
-        self.vertices = { }
-        self.edges = { }
-        self.press_action = "drag"
-        self.hidden_vertices = { }
-        self.hidden_edges = { }
+        self.vertices, self.edges = { }, { }
+        self.hidden_vertices, self.hidden_edges = { }, { }
+        self.press_action = "move"
 
     def add_vertex(self, vx_id, xy, radius, label, **props):
 
         if vx_id in self.vertices:
-            raise Exception("duplicate vertex id")
+            raise DuplicateVertexError(vx_id)
 
         c = plt.Circle(xy, radius, picker = True, **props)
         self.ax.add_patch(c)
@@ -28,19 +27,20 @@ class InteractiveGraph(object):
 
     def add_edge(self, edge_id, src_id, tgt_id, **props):
 
-        if src_id not in self.vertices or tgt_id not in self.vertices:
-            raise Exception("nonexistent vertex")
-
+        if src_id not in self.vertices:
+            raise NonexistentVertexError(src_id, "add edge")
+        elif tgt_id not in self.vertices:
+            raise NonexistentVertexError(tgt_id, "add edge")
+            
         if edge_id in self.edges:
-            raise Exception("duplicate edge id")
+            edge = self.edges
+            src, tgt = edge.source, edge.target
+            raise DuplicateEdgeError(edge_id, src, tgt, "add edge", "edge id already exists")
 
         if src_id == tgt_id:
             self.vertices[src_id].add_loop(edge_id)
             self.edges[edge_id] = Edge(edge_id, self, src_id, tgt_id, None)
             return
-
-        self.vertices[src_id].add_out_edge(edge_id)
-        self.vertices[tgt_id].add_in_edge(edge_id)
 
         src, tgt = self.vertices[src_id], self.vertices[tgt_id]
         src_x, src_y = src.circle.center
@@ -50,11 +50,22 @@ class InteractiveGraph(object):
         self.ax.add_line(line)
         edge = Edge(edge_id, self, src_id, tgt_id, line)
         edge.update()
+
+        self.vertices[src_id].add_out_edge(edge_id)
+        self.vertices[tgt_id].add_in_edge(edge_id)
         self.edges[edge_id] = edge
 
     def hide_vertex(self, vx_id):
 
+        if vx_id in self.hidden_vertices:
+            raise VertexActionError(vx_id, "hide", "vertex already hidden")
+        elif vx_id not in self.vertices:
+            raise NonexistentVertexError(vx_id, "hide")
+
         vertex = self.vertices[vx_id]
+
+        for edge_id in vertex.loops:
+            self.hidden_edges[edge_id] = self.edges.pop(edge_id)
 
         for edge_id in vertex.in_edges:
             edge = self.edges.pop(edge_id)
@@ -68,19 +79,37 @@ class InteractiveGraph(object):
             self.vertices[edge.target].hide_in_edge(edge_id)
             edge.hide()
 
-        for edge_id in vertex.loops:
-            self.hidden_edges[edge_id] = self.edges.pop(edge_id)
-
         vertex.hide()
         self.hidden_vertices[vx_id] = self.vertices.pop(vx_id)
         self.ax.figure.canvas.draw()
 
+    def hide_edge(self, edge_id):
+
+        if edge_id in self.hidden_edges:
+            raise EdgeActionError(edge_id, "hide", "edge already hidden")
+        elif edge_id not in self.edges:
+            raise NonexistentEdgeError(edge_id, None, None, "hide")
+
+        edge = self.edges[edge_id]
+        src_id, tgt_id = edge.source, edge.target
+        if src_id == tgt_id:
+            self.vertices[src_id].hide_loop(edge_id)
+        else:
+            self.vertices[src_id].hide_out_edge(edge_id)
+            self.vertices[tgt_id].hide_in_edge(edge_id)
+            edge.hide()
+
+        self.hidden_edges[edge_id] = self.edges.pop(edge_id)
+        self.ax.figure.canvas.draw()
+
     def restore_vertex(self, vx_id):
 
-        if vx_id not in self.hidden_vertices:
-            raise Exception("nonexistent vertex")
+        if vx_id in self.vertices:
+            raise VertexActionError(vx_id, "restore", "vertex already visible")
+        elif vx_id not in self.hidden_vertices:
+            raise NonexistentVertexError(vx_id, "restore")
 
-        vertex = self.hidden_vertices.pop(vx_id)
+        vertex = self.hidden_vertices[vx_id]
         self.vertices[vx_id] = vertex
 
         in_edges, out_edges = set(), set()
@@ -104,33 +133,115 @@ class InteractiveGraph(object):
             self.edges[edge_id] = self.hidden_edges.pop(edge_id)
 
         vertex.restore(self.ax, in_edges, out_edges)
+        self.vertices[vx_id] = self.hidden_vertices.pop(vx_id)
+        self.ax.figure.canvas.draw()
+
+    def restore_edge(self, edge_id):
+
+        if edge_id in self.edges:
+            edge = self.edges[edge_id]
+            src_id, tgt_id = edge.source, edge.target
+            raise EdgeActionError(edge_id, src_id, tgt_id,  "restore", "edge already visible")
+        elif edge_id not in self.hidden_edges:
+            raise NonexistentEdgeError(edge_id, None, None, "restore")
+
+        edge = self.hidden_edges[edge_id]
+        src_id, tgt_id = edge.source, edge.target
+
+        if src_id in self.hidden_vertices:
+            raise EdgeActionError(edge_id, src_id, tgt_id, "restore", "source vertex is hidden")
+        if tgt_id in self.hidden_vertices:
+            raise EdgeActionError(edge_id, src_id, tgt_id, "restore", "target vertex is hidden")
+
+        if src_id == tgt_id:
+            self.vertices[src_id].restore_loop(edge_id)
+        else:
+            self.vertices[src_id].restore_out_edge(edge_id)
+            self.vertices[tgt_id].restore_in_edge(edge_id)
+            edge.restore(self.ax)
+
+        self.edges[edge_id] = self.hidden_edges.pop(edge_id)
         self.ax.figure.canvas.draw()
 
     def remove_vertex(self, vx_id):
 
-        vertex = self.vertices.pop(vx_id)
-        vertex.remove()
+        if vx_id in self.hidden_vertices:
+            self.restore_vertex(vx_id)
+        if vx_id not in self.vertices:
+            raise NonexistentVertexError(vx_id, "remove")
+
+        vertex = self.vertices[vx_id]
 
         for edge_id in vertex.loops:
             edge = self.edges.pop(edge_id)
 
         for edge_id in vertex.in_edges:
             edge = self.edges.pop(edge_id)
-            src = self.vertices[edge.source]
-            src.remove_out_edge(edge_id)
+            self.vertices[edge.source].remove_out_edge(edge_id)
+            edge.hide()
 
         for edge_id in vertex.out_edges:
             edge = self.edges.pop(edge_id)
-            tgt = self.vertices[edge.target]
-            tgt.remove_in_edge(edge_id)
+            self.vertices[edge.target].remove_in_edge(edge_id)
+            edge.hide()
 
+        vertex.remove()
+        self.vertices.pop(vx_id)
         self.ax.figure.canvas.draw()
 
-    def restore_all(self):
+    def remove_edge(self, edge_id):
 
-        for vx in self.hidden_vertices.keys():
-            self.restore_vertex(vx)
-            
+        if edge_id in self.hidden_edges:
+            self.restore_edge(edge_id)
+        elif edge_id not in self.edges:
+            raise NonexistentEdgeError(edge_id, "remove")
+
+        edge = self.edges[edge_id]
+        src_id, tgt_id = edge.source, edge.target
+        if src_id == tgt_id:
+            self.vertices[src_id].remove_loop(edge_id)
+        else:
+            self.vertices[src_id].remove_out_edge(edge_id)
+            self.vertices[tgt_id].remove_in_edge(edge_id)
+            edge.hide()
+
+        self.edges.pop(edge_id)
+        self.ax.figure.canvas.draw()
+
+    def add_vertices(self, vertices, **props):
+        return filter(lambda v: v is not None, [ self.add_vertex(*vx, **props) for vx in vertices ])
+
+    def add_edges(self, edges, **props):
+        return filter(lambda v: v is not None, [ self.add_edge(*e, **props) for e in edges ])
+
+    def hide_vertices(self, vertices):
+        return filter(lambda v: v is not None, [ self.hide_vertex(vx) for vx in vertices ])
+
+    def hide_edges(self, edge_ids):
+        return filter(lambda v: v is not None, [ self.hide_edge(e) for e in edge_ids ])
+
+    def restore_vertices(self, vertices):
+        return filter(lambda v: v is not None, [ self.restore_vertex(vx) for vx in vertices ])
+
+    def restore_edges(self, edge_ids):
+        return filter(lambda v: v is not None, [ self.restore_edge(e) for e in edge_ids ])
+
+    def remove_vertices(self, vertices):
+        return filter(lambda v: v is not None, [ self.remove_vertex(vx) for vx in vertices ])
+
+    def remove_edges(self, edge_ids):
+        return filter(lambda v: v is not None, [ self.remove_edge(e) for e in edge_ids ])
+
+    def restore_all(self):
+        return filter(lambda v: v is not None, 
+            [ self.restore_vertex(vx) for vx in  self.hidden_vertices.keys() ] +
+            [ self.restore_edge(e) for e in self.hidden_edges.keys() ])
+
+    def clear(self):
+        return filter(lambda v: v is not None, 
+            [ self.remove_vertex(vx) for vx in self.hidden_vertices.keys() + self.vertices.keys() ] +
+            [ self.remove_edge(e) for e in self.hidden_edges.keys() + self.edges.keys() ])
+
     def reset_view(self):
 
         self.ax.set_autoscale_on(True)
