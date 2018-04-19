@@ -42,12 +42,12 @@ class TestBulkGraphOps(unittest.TestCase):
         self.add_all()
         results = self.hide_vertices()
         self.assertItemsEqual(results, [ ], "hide vertices returned with errors")
-        self.assertEqual(len(self.ig.vertices), 0, 
-          "number of vertices was %d, expected 0" % len(self.ig.vertices))
+        self.assertEqual(len(self.ig.visible_vertices), 0, 
+          "number of vertices was %d, expected 0" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 6,
           "number of hidden vertices was %d, expected 6" % len(self.ig.hidden_vertices))
-        self.assertEqual(len(self.ig.edges), 0, 
-          "number of edges was %d, expected 0" % len(self.ig.edges))
+        self.assertEqual(len(self.ig.visible_edges), 0, 
+          "number of edges was %d, expected 0" % len(self.ig.visible_edges))
         self.assertEqual(len(self.ig.hidden_edges), 15,
           "number of hidden edges was %d, expected 15" % len(self.ig.hidden_edges))
 
@@ -56,12 +56,12 @@ class TestBulkGraphOps(unittest.TestCase):
         self.add_all()
         results = self.hide_edges()
         self.assertItemsEqual(results, [ ], "hide edges returned with errors")
-        self.assertEqual(len(self.ig.vertices), 6, 
-          "number of vertices was %d, expected 6" % len(self.ig.vertices))
+        self.assertEqual(len(self.ig.visible_vertices), 6, 
+          "number of vertices was %d, expected 6" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,
           "number of hidden vertices was %d, expected 0" % len(self.ig.hidden_vertices))
-        self.assertEqual(len(self.ig.edges), 0, 
-          "number of edges was %d, expected 0" % len(self.ig.edges))
+        self.assertEqual(len(self.ig.visible_edges), 0, 
+          "number of edges was %d, expected 0" % len(self.ig.visible_edges))
         self.assertEqual(len(self.ig.hidden_edges), 15,
           "number of hidden edges was %d, expected 15" % len(self.ig.hidden_edges))
 
@@ -71,12 +71,12 @@ class TestBulkGraphOps(unittest.TestCase):
         self.hide_vertices()
         results = self.ig.restore_vertices([ vid for vid, xy, r, l in self.vertices ])
         self.assertItemsEqual(results, [ ], "restore vertices returned with errors")
-        self.assertEqual(len(self.ig.vertices), 6, 
-          "number of vertices was %d, expected 6" % len(self.ig.vertices))
+        self.assertEqual(len(self.ig.visible_vertices), 6, 
+          "number of vertices was %d, expected 6" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,
           "number of hidden vertices was %d, expected 0" % len(self.ig.hidden_vertices))
-        self.assertEqual(len(self.ig.edges), 15, 
-          "number of edges was %d, expected 15" % len(self.ig.edges))
+        self.assertEqual(len(self.ig.visible_edges), 15, 
+          "number of edges was %d, expected 15" % len(self.ig.visible_edges))
         self.assertEqual(len(self.ig.hidden_edges), 0,
           "number of hidden edges was %d, expected 0" % len(self.ig.hidden_edges))
 
@@ -86,12 +86,12 @@ class TestBulkGraphOps(unittest.TestCase):
         self.hide_edges()
         results = self.ig.restore_edges([ eid for eid, s, t in self.edges ])
         self.assertItemsEqual(results, [ ], "restore edges returned with errors")
-        self.assertEqual(len(self.ig.vertices), 6, 
-          "number of vertices was %d, expected 6" % len(self.ig.vertices))
+        self.assertEqual(len(self.ig.visible_vertices), 6, 
+          "number of vertices was %d, expected 6" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,
           "number of hidden vertices was %d, expected 0" % len(self.ig.hidden_vertices))
-        self.assertEqual(len(self.ig.edges), 15, 
-          "number of edges was %d, expected 15" % len(self.ig.edges))
+        self.assertEqual(len(self.ig.visible_edges), 15, 
+          "number of edges was %d, expected 15" % len(self.ig.visible_edges))
         self.assertEqual(len(self.ig.hidden_edges), 0,
           "number of hidden edges was %d, expected 0" % len(self.ig.hidden_edges))
 
@@ -100,12 +100,12 @@ class TestBulkGraphOps(unittest.TestCase):
         self.add_all()
         results = self.ig.remove_vertices([ vid for vid, xy, r, l in self.vertices ])
         self.assertItemsEqual(results, [ ], "remove vertices returned with errors")
-        self.assertEqual(len(self.ig.vertices), 0, 
-          "number of vertices was %d, expected 0" % len(self.ig.vertices))
+        self.assertEqual(len(self.ig.visible_vertices), 0, 
+          "number of vertices was %d, expected 0" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,
           "number of hidden vertices was %d, expected 0" % len(self.ig.hidden_vertices))
-        self.assertEqual(len(self.ig.edges), 0, 
-          "number of edges was %d, expected 0" % len(self.ig.edges))
+        self.assertEqual(len(self.ig.visible_edges), 0, 
+          "number of edges was %d, expected 0" % len(self.ig.visible_edges))
         self.assertEqual(len(self.ig.hidden_edges), 0,
           "number of hidden edges was %d, expected 0" % len(self.ig.hidden_edges))
 
@@ -114,12 +114,12 @@ class TestBulkGraphOps(unittest.TestCase):
         self.add_all()
         results = self.ig.remove_edges([ eid for eid, s, t in self.edges ])
         self.assertItemsEqual(results, [ ], "remove edges returned with errors")
-        self.assertEqual(len(self.ig.vertices), 6, 
-          "number of vertices was %d, expected 6" % len(self.ig.vertices))
+        self.assertEqual(len(self.ig.visible_vertices), 6, 
+          "number of vertices was %d, expected 6" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,
           "number of hidden vertices was %d, expected 0" % len(self.ig.hidden_vertices))
-        self.assertEqual(len(self.ig.edges), 0, 
-          "number of edges was %d, expected 0" % len(self.ig.edges))
+        self.assertEqual(len(self.ig.visible_edges), 0, 
+          "number of edges was %d, expected 0" % len(self.ig.visible_edges))
         self.assertEqual(len(self.ig.hidden_edges), 0,
           "number of hidden edges was %d, expected 0" % len(self.ig.hidden_edges))
 

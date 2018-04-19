@@ -54,6 +54,18 @@ class Vertex(object):
         self.annotation.remove()
         self.circle.remove()
 
+    def set_location(self, x, y):
+
+        self.circle.center = x, y
+        canvas = self.circle.figure.canvas
+        axes = self.circle.axes
+        canvas.restore_region(self.background)
+        axes.draw_artist(self.circle)
+        for edge in self.in_edges | self.out_edges:
+            artist = self.graph.get_edge(edge)
+            artist.update()
+        canvas.blit(axes.bbox)
+
     def connect(self):
 
         self.cidpress = self.circle.figure.canvas.mpl_connect("button_press_event", self.on_press)
@@ -125,7 +137,7 @@ class Vertex(object):
         canvas.restore_region(self.background)
         axes.draw_artist(self.circle)
         for edge in self.in_edges | self.out_edges:
-            artist = self.graph.edges[edge]
+            artist = self.graph.get_edge(edge)
             artist.update()
         canvas.blit(axes.bbox)
 
@@ -135,7 +147,7 @@ class Vertex(object):
             return
 
         for edge in self.in_edges | self.out_edges:
-            artist = self.graph.edges[edge]
+            artist = self.graph.get_edge(edge)
             artist.update()
 
         self.press = None

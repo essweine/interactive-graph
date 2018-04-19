@@ -25,7 +25,7 @@ class Edge(object):
 
     def update(self):
 
-        src, tgt = self.graph.vertices[self.source], self.graph.vertices[self.target]
+        src, tgt = self.graph.get_vertex(self.source), self.graph.get_vertex(self.target)
         src_x, src_y = src.circle.center
         tgt_x, tgt_y = tgt.circle.center
         r1, r2 = src.circle.radius, tgt.circle.radius
