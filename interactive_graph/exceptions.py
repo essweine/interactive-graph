@@ -19,7 +19,7 @@ class NonexistentVertexError(VertexError):
 
 class VertexActionError(VertexError):
     def __init__(self, vertex, action, message):
-        super(DuplicateActionError, self).__init__(vertex, action, message)
+        super(VertexActionError, self).__init__(vertex, action, message)
 
 class EdgeError(Exception):
 
@@ -41,9 +41,9 @@ class DuplicateEdgeError(EdgeError):
 
 class NonexistentEdgeActionError(EdgeError):
     def __init__(self, edge, source, target, action):
-        super(DuplicateEdgeError, self).__init__(edge, source, target, action, "edge does not exist")
+        super(NonexistentEdgeError, self).__init__(edge, source, target, action, "edge does not exist")
 
 class EdgeActionError(EdgeError):
     def __init__(self, edge, source, target, action, reason):
-        super(DuplicateEdgeError, self).__init__(edge, source, target, action, reason)
+        super(EdgeActionError, self).__init__(edge, source, target, action, reason)
 

@@ -11,26 +11,26 @@ class Vertex(object):
         x, y = circle.center
         self.annotation = self.circle.axes.text(x, y, label, bbox = Vertex.annotation_props, visible = False)
 
-        self.in_edges = set()
-        self.out_edges = set()
-        self.loops = set()
+        self._in_edges = set()
+        self._out_edges = set()
+        self._loops = set()
 
-        self.hidden_in_edges = set()
-        self.hidden_out_edges = set()
-        self.hidden_loops = set()
+        self._hidden_in_edges = set()
+        self._hidden_out_edges = set()
+        self._hidden_loops = set()
 
         self.press = None
         self.background = None
 
     def hide(self):
 
-        self.hidden_in_edges |= self.in_edges
-        self.hidden_out_edges |= self.out_edges
-        self.hidden_loops |= self.loops
+        self._hidden_in_edges |= self._in_edges
+        self._hidden_out_edges |= self._out_edges
+        self._hidden_loops |= self._loops
 
-        self.in_edges.clear()
-        self.out_edges.clear()
-        self.loops.clear()
+        self._in_edges.clear()
+        self._out_edges.clear()
+        self._loops.clear()
 
         if self.annotation.get_visible() is True:
             self.annotation.set_visible(False)
@@ -38,13 +38,13 @@ class Vertex(object):
 
     def restore(self, ax, in_edges, out_edges):
 
-        self.in_edges |= in_edges
-        self.out_edges |= out_edges
-        self.loops |= self.hidden_loops
+        self._in_edges |= in_edges
+        self._out_edges |= out_edges
+        self._loops |= self._hidden_loops
 
-        self.hidden_in_edges -= in_edges
-        self.hidden_out_edges -= out_edges
-        self.hidden_loops.clear()
+        self._hidden_in_edges -= in_edges
+        self._hidden_out_edges -= out_edges
+        self._hidden_loops.clear()
 
         self.circle.set_figure(ax.figure)
         ax.add_artist(self.circle)
@@ -54,23 +54,17 @@ class Vertex(object):
         self.annotation.remove()
         self.circle.remove()
 
+    def get_location(self):
+
+        return self.circle.center
+
     def set_location(self, x, y):
 
         self.circle.center = x, y
-        canvas = self.circle.figure.canvas
-        axes = self.circle.axes
-        canvas.restore_region(self.background)
-        axes.draw_artist(self.circle)
-        for edge in self.in_edges | self.out_edges:
+        self.annotation.set_x(x), self.annotation.set_y(y)
+        for edge in self._in_edges | self._out_edges | self._hidden_in_edges | self._hidden_out_edges:
             artist = self.graph.get_edge(edge)
             artist.update()
-        canvas.blit(axes.bbox)
-
-    def connect(self):
-
-        self.cidpress = self.circle.figure.canvas.mpl_connect("button_press_event", self.on_press)
-        self.cidrelease = self.circle.figure.canvas.mpl_connect("button_release_event", self.on_release)
-        self.cidmotion = self.circle.figure.canvas.mpl_connect("motion_notify_event", self.on_motion)
 
     def on_press(self, event):
 
@@ -87,6 +81,8 @@ class Vertex(object):
             self.graph.hide_vertex(self.vertex_id)
         elif self.graph.press_action == "remove":
             self.graph.hide_vertex(self.vertex_id)
+        elif self.graph.press_action == "expand":
+            self.graph.expand_or_collapse(self.vertex_id)
 
     def move(self, event):
 
@@ -136,7 +132,7 @@ class Vertex(object):
         axes = self.circle.axes
         canvas.restore_region(self.background)
         axes.draw_artist(self.circle)
-        for edge in self.in_edges | self.out_edges:
+        for edge in self._in_edges | self._out_edges:
             artist = self.graph.get_edge(edge)
             artist.update()
         canvas.blit(axes.bbox)
@@ -146,7 +142,7 @@ class Vertex(object):
         if Vertex.lock is not self:
             return
 
-        for edge in self.in_edges | self.out_edges:
+        for edge in self._in_edges | self._out_edges:
             artist = self.graph.get_edge(edge)
             artist.update()
 
@@ -158,6 +154,14 @@ class Vertex(object):
 
         x, y = self.circle.center
         self.annotation.set_x(x), self.annotation.set_y(y)
+        if self.vertex_id in self.graph.expandable_subgraphs:
+            self.graph.update_subgraph_root(self.vertex_id)
+
+    def connect(self):
+
+        self.cidpress = self.circle.figure.canvas.mpl_connect("button_press_event", self.on_press)
+        self.cidrelease = self.circle.figure.canvas.mpl_connect("button_release_event", self.on_release)
+        self.cidmotion = self.circle.figure.canvas.mpl_connect("motion_notify_event", self.on_motion)
 
     def disconnect(self):
 
@@ -165,45 +169,77 @@ class Vertex(object):
         self.circle.figure.canvas.mpl_disconnect(self.cidrelease)
         self.circle.figure.canvas.mpl_disconnect(self.cidmotion)
 
+    @property
+    def in_edges(self):
+        return self._in_edges
+
+    @property
+    def out_edges(self):
+        return self._out_edges
+
+    @property
+    def loops(self):
+        return self._loops
+
+    @property
+    def hidden_in_edges(self):
+        return self._hidden_in_edges
+
+    @property
+    def hidden_out_edges(self):
+        return self._hidden_out_edges
+
+    @property
+    def hidden_loops(self):
+        return self._hidden_loops
+
+    @property
+    def visible_edges(self):
+        return self._in_edges | self._out_edges | self._loops
+
+    @property
+    def hidden_edges(self):
+        return self._hidden_in_edges | self._hidden_out_edges | self._hidden_loops
+
     def add_in_edge(self, edge_id):
-        self.in_edges.add(edge_id)
+        self._in_edges.add(edge_id)
 
     def add_out_edge(self, edge_id):
-        self.out_edges.add(edge_id)
+        self._out_edges.add(edge_id)
 
     def add_loop(self, edge_id):
-        self.loops.add(edge_id)
+        self._loops.add(edge_id)
 
     def hide_in_edge(self, edge_id):
-        self.in_edges.remove(edge_id)
-        self.hidden_in_edges.add(edge_id)
+        self._in_edges.remove(edge_id)
+        self._hidden_in_edges.add(edge_id)
 
     def hide_out_edge(self, edge_id):
-        self.out_edges.remove(edge_id)
-        self.hidden_out_edges.add(edge_id)
+        self._out_edges.remove(edge_id)
+        self._hidden_out_edges.add(edge_id)
 
     def hide_loop(self, edge_id):
-        self.loops.remove(edge_id)
-        self.hidden_loops.add(edge_id)
+        self._loops.remove(edge_id)
+        self._hidden_loops.add(edge_id)
 
     def restore_in_edge(self, edge_id):
-        self.hidden_in_edges.remove(edge_id)
-        self.in_edges.add(edge_id)
+        self._hidden_in_edges.remove(edge_id)
+        self._in_edges.add(edge_id)
 
     def restore_out_edge(self, edge_id):
-        self.hidden_out_edges.remove(edge_id)
-        self.out_edges.add(edge_id)
+        self._hidden_out_edges.remove(edge_id)
+        self._out_edges.add(edge_id)
 
     def restore_loop(self, edge_id):
-        self.hidden_loops.remove(edge_id)
-        self.loops.add(edge_id)
+        self._hidden_loops.remove(edge_id)
+        self._loops.add(edge_id)
 
     def remove_in_edge(self, edge_id):
-        self.in_edges.remove(edge_id)
+        self._in_edges.remove(edge_id)
 
     def remove_out_edge(self, edge_id):
-        self.out_edges.remove(edge_id)
+        self._out_edges.remove(edge_id)
 
     def remove_loop(self, edge_id):
-        self.loops.remove(edge_id)
+        self._loops.remove(edge_id)
 

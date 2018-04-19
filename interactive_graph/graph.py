@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 
 from vertex import Vertex
 from edge import Edge
+from subgraph import ExpandableSubgraph
 from exceptions import *
 
 class InteractiveGraph(object):
@@ -30,21 +31,32 @@ class InteractiveGraph(object):
     def hidden_edges(self):
         return set(self._hidden_edges.keys())
 
+    @property
+    def expandable_subgraphs(self):
+        return set(self._expandable_subgraphs.keys())
+
     def get_vertex(self, vx_id):
+
         if vx_id in self._vertices:
             return self._vertices[vx_id]
-        elif vx_id in self._hidden_vertices[vx_id]:
+        elif vx_id in self._hidden_vertices:
             return self._hidden_vertices[vx_id]
         else:
             raise NonexistentVertexError(vx_id, "get")
 
     def get_edge(self, edge_id):
+
         if edge_id in self._edges:
             return self._edges[edge_id]
-        elif edge_id in self._hidden_edges[edge_id]:
+        elif edge_id in self._hidden_edges:
             return self._hidden_edges[edge_id]
         else:
             raise NonexistentVertexError(vx_id, "get")
+
+    def get_expandable_subgraph(self, vx_id):
+
+        if vx_id in self._expandable_subgraphs:
+            return self._expandable_subgraphs[vx_id]
 
     def add_vertex(self, vx_id, xy, radius, label, redraw = True, **props):
 
@@ -247,6 +259,7 @@ class InteractiveGraph(object):
             self.ax.figure.canvas.draw()
 
     def redraw(action):
+
         def f(self, *args, **kwargs):
             result = action(self, *args, **kwargs)
             self.ax.figure.canvas.draw()
