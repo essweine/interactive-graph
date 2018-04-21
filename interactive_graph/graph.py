@@ -13,6 +13,7 @@ class InteractiveGraph(object):
         self.ax.set_aspect("equal")
         self._vertices, self._edges = { }, { }
         self._hidden_vertices, self._hidden_edges = { }, { }
+        self._expandable_subgraphs = { }
         self.press_action = "move"
 
     @property
@@ -34,6 +35,9 @@ class InteractiveGraph(object):
     @property
     def expandable_subgraphs(self):
         return set(self._expandable_subgraphs.keys())
+
+    def exists(self, vx_id):
+        return vx_id in self._vertices.keys() + self._hidden_vertices.keys()
 
     def get_vertex(self, vx_id):
 
@@ -258,6 +262,18 @@ class InteractiveGraph(object):
         if redraw:
             self.ax.figure.canvas.draw()
 
+    def create_expandable_subgraph(self, root, vertices, **kwargs):
+
+        missing = [ vx_id for vx_id in vertices if not self.exists(vx_id) ]
+        sg = ExpandableSubgraph(self, root, set(vertices) - set(missing), **kwargs)
+        self._expandable_subgraphs[root] = sg
+        return [ NonexistentVertexError(vx_id, "create subgraph") for vx_id in missing ]
+
+    def remove_expanable_subgraph(self, root, circle = None):
+
+        sg = self._expandable_subgraphs.pop(root)
+        sg.remove(circle)
+    
     def redraw(action):
 
         def f(self, *args, **kwargs):
@@ -299,10 +315,27 @@ class InteractiveGraph(object):
         return filter(lambda v: v is not None, [ self.remove_edge(e, False) for e in edge_ids ])
 
     @redraw
+    def expand_or_collapse(self, vx_id):
+
+        if vx_id not in self._expandable_subgraphs:
+            raise VertexActionError(vx_id, "expand", "vertex is not the root of an expandable subgraph")
+        self._expandable_subgraphs[vx_id].expand_or_collapse()
+
+    @redraw
     def restore_all(self):
-        return filter(lambda v: v is not None, 
+
+        # Restore everything
+        errors = filter(lambda v: v is not None, 
             [ self.restore_vertex(vx, False) for vx in  self._hidden_vertices.keys() ] +
             [ self.restore_edge(e, False) for e in self._hidden_edges.keys() ])
+
+        # Re-collapse subgraphs in the "collapsed" state
+        for sg in self._expandable_subgraphs.itervalues():
+            if sg.state == "collapsed":
+                sg.collapse()
+
+        # Maybe this should work a different way?
+        return errors
 
     @redraw
     def clear(self):

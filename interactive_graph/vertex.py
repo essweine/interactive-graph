@@ -54,17 +54,18 @@ class Vertex(object):
         self.annotation.remove()
         self.circle.remove()
 
-    def get_location(self):
+    def update_circle(self, new, ax):
 
-        return self.circle.center
-
-    def set_location(self, x, y):
-
-        self.circle.center = x, y
-        self.annotation.set_x(x), self.annotation.set_y(y)
-        for edge in self._in_edges | self._out_edges | self._hidden_in_edges | self._hidden_out_edges:
+        self.disconnect()
+        self.circle.remove()
+        new.center = self.circle.center
+        new.set_figure(ax.figure)
+        ax.add_artist(new)
+        self.circle = new
+        for edge in self.in_edges | self.out_edges:
             artist = self.graph.get_edge(edge)
             artist.update()
+        self.connect()
 
     def on_press(self, event):
 
@@ -154,8 +155,6 @@ class Vertex(object):
 
         x, y = self.circle.center
         self.annotation.set_x(x), self.annotation.set_y(y)
-        if self.vertex_id in self.graph.expandable_subgraphs:
-            self.graph.update_subgraph_root(self.vertex_id)
 
     def connect(self):
 
