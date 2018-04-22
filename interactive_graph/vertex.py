@@ -129,13 +129,14 @@ class Vertex(object):
         dx, dy = event.xdata - xpress, event.ydata - ypress
         self.circle.center = (x0 + dx, y0 + dy)
 
+        for edge in self._in_edges | self._out_edges:
+            artist = self.graph.get_edge(edge)
+            artist.update()
+
         canvas = self.circle.figure.canvas
         axes = self.circle.axes
         canvas.restore_region(self.background)
         axes.draw_artist(self.circle)
-        for edge in self._in_edges | self._out_edges:
-            artist = self.graph.get_edge(edge)
-            artist.update()
         canvas.blit(axes.bbox)
 
     def on_release(self, event):
@@ -170,14 +171,26 @@ class Vertex(object):
 
     @property
     def in_edges(self):
-        return self._in_edges
+        return self._in_edges | self._hidden_in_edges
 
     @property
     def out_edges(self):
-        return self._out_edges
+        return self._out_edges | self._hidden_out_edges
 
     @property
     def loops(self):
+        return self._loops | self._hidden_loops
+
+    @property
+    def visible_in_edges(self):
+        return self._in_edges
+
+    @property
+    def visible_out_edges(self):
+        return self._out_edges
+
+    @property
+    def visible_loops(self):
         return self._loops
 
     @property

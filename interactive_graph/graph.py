@@ -17,6 +17,14 @@ class InteractiveGraph(object):
         self.press_action = "move"
 
     @property
+    def vertices(self):
+        return set(self._vertices.keys()) | set(self._hidden_vertices.keys())
+
+    @property
+    def edges(self):
+        return set(self._edges.keys()) | set(self._hidden_edges.keys())
+
+    @property
     def visible_vertices(self):
         return set(self._vertices.keys())
 
@@ -37,7 +45,7 @@ class InteractiveGraph(object):
         return set(self._expandable_subgraphs.keys())
 
     def exists(self, vx_id):
-        return vx_id in self._vertices.keys() + self._hidden_vertices.keys()
+        return vx_id in self.vertices
 
     def get_vertex(self, vx_id):
 
@@ -112,16 +120,16 @@ class InteractiveGraph(object):
 
         vertex = self._vertices[vx_id]
 
-        for edge_id in vertex.loops:
+        for edge_id in vertex.visible_loops:
             self._hidden_edges[edge_id] = self._edges.pop(edge_id)
 
-        for edge_id in vertex.in_edges:
+        for edge_id in vertex.visible_in_edges:
             edge = self._edges.pop(edge_id)
             self._hidden_edges[edge_id] = edge
             self._vertices[edge.source].hide_out_edge(edge_id)
             edge.hide()
 
-        for edge_id in vertex.out_edges:
+        for edge_id in vertex.visible_out_edges:
             edge = self._edges.pop(edge_id)
             self._hidden_edges[edge_id] = edge
             self._vertices[edge.target].hide_in_edge(edge_id)
@@ -264,6 +272,8 @@ class InteractiveGraph(object):
 
     def create_expandable_subgraph(self, root, vertices, **kwargs):
 
+        if root in self.hidden_vertices:
+            self.restore_vertex(root)
         missing = [ vx_id for vx_id in vertices if not self.exists(vx_id) ]
         sg = ExpandableSubgraph(self, root, set(vertices) - set(missing), **kwargs)
         self._expandable_subgraphs[root] = sg

@@ -47,6 +47,10 @@ class ExpandableSubgraph(object):
 
         root = self.graph.get_vertex(self.root)
         root.update_circle(self.collapsed_circle, self.graph.ax)
+        for sg_root in self.graph.expandable_subgraphs & self.vertices:
+            sg = self.graph.get_expandable_subgraph(sg_root)
+            if sg.state != "collapsed":
+                sg.collapse()
         self.graph.hide_vertices(self.vertices - self.graph.hidden_vertices)
         self.graph.hide_edges(self.edges - self.graph.hidden_edges)
         self.state = "collapsed"
@@ -56,6 +60,7 @@ class ExpandableSubgraph(object):
         root = self.graph.get_vertex(self.root)
         if circle is not None:
             root.update_circle(self.circle, self.graph.ax)
+        self.expand()
 
     def add_vertex(self, vx_id):
 
@@ -76,8 +81,8 @@ class ExpandableSubgraph(object):
         vertices = self.vertices | set([ self.root ])
         for vx_id in vertices:
             vertex = self.graph.get_vertex(vx_id)
-            for edge_id in vertex.visible_edges | vertex.hidden_edges:
+            for edge_id in vertex.out_edges:
                 edge = self.graph.get_edge(edge_id)
-                if edge.source in vertices and edge.target in vertices:
+                if edge.target in vertices:
                     edges.add(edge_id)
         return edges
