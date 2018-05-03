@@ -11,9 +11,28 @@ class InteractiveGraph(object):
 
         self.ax = ax
         self.ax.set_aspect("equal")
+
         self._visible_vertices, self._visible_edges = { }, { }
         self._hidden_vertices, self._hidden_edges = { }, { }
+
         self.press_action = "move"
+        self._actions = {
+            "hide": self.hide_vertex,
+            "remove": self.remove_vertex,
+        }
+
+    @property
+    def actions(self):
+        return self._actions.keys()
+
+    def add_action(self, name, handler):
+        self._actions[name] = handler
+
+    def remove_action(self, name):
+        del self._actions[name]
+
+    def perform_action(self, vx_id):
+        self._actions[self.press_action](vx_id)
 
     def add_vertex(self, vx_id, xy, radius, label, redraw = True, **props):
 
@@ -300,7 +319,7 @@ class InteractiveGraph(object):
     def get_edge(self, edge_id):
 
         if edge_id in self._visible_edges:
-            return self._visble_edges[edge_id]
+            return self._visible_edges[edge_id]
         elif edge_id in self._hidden_edges:
             return self._hidden_edges[edge_id]
         else:

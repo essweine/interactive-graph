@@ -2,87 +2,131 @@ from exceptions import NonexistentVertexError
 
 class ExpandableSubgraph(object):
 
-    def __init__(self, graph, root, vertices = set(), state = "collapsed", 
-            expanded_circle = None, collapsed_circle = None):
+    def __init__(self, graph):
 
-        if not graph.exists(root):
-            raise NonexistentVertexError(root, "create expandable subgraph")
-
-        self.state = state
         self.graph = graph
-        self.root = root
-        self.vertices = vertices
-        self.edges = self._get_edges()
+        self._collapsed, self._expanded = { }, { }
 
-        circle = self.graph.get_vertex(root).circle
+    def add(self, root, vertices, expanded_circle = None, collapsed_circle = None, state = "collapsed"):
+
+        if not self.graph.vertex_exists(root):
+            raise NonexistentVertexError(root, "create subgraph")
+
         if expanded_circle is None:
-            self.expanded_circle = circle
-        else:
-            self.expanded_circle = expanded_circle
-
+            expanded_circle = self.graph.get_vertex(root).circle
         if collapsed_circle is None:
-            self.collapsed_circle = circle
-        else:
-            self.collapsed_circle = collapsed_circle
+            collapsed_circle = self.graph.get_vertex(root).circle
 
-        self.collapse() if state == "collapsed" else self.expand()
+        edges = self._get_edges(root, vertices)
 
-    def expand_or_collapse(self):
+        if state == "collapsed":
+            # This is a little unintuitive, but collapse moves a vertex from expanded to collapsed
+            self._expanded[root] = ExpandableSubgraphData(root, vertices, edges, expanded_circle, collapsed_circle)
+            return self.collapse(root)
 
-        if self.state == "collapsed":
-            self.expand()
-        elif self.state == "expanded":
-            self.collapse()
+        elif state == "expanded":
+            self._collapsed[root] = ExpandableSubgraphData(root, vertices, edges, expanded_circle, collapsed_circle)
+            return self.expand(root)
 
-    def expand(self):
+    def remove(self, root, circle = None):
 
-        # Handle errors or ignore them?
-        root = self.graph.get_vertex(self.root)
-        root.update_circle(self.expanded_circle, self.graph.ax)
-        self.graph.restore_vertices(self.vertices - self.graph.visible_vertices)
-        self.graph.restore_edges(self.edges - self.graph.visible_edges)
-        self.state = "expanded"
-
-    def collapse(self):
-
-        root = self.graph.get_vertex(self.root)
-        root.update_circle(self.collapsed_circle, self.graph.ax)
-        for sg_root in self.graph.expandable_subgraphs & self.vertices:
-            sg = self.graph.get_expandable_subgraph(sg_root)
-            if sg.state != "collapsed":
-                sg.collapse()
-        self.graph.hide_vertices(self.vertices - self.graph.hidden_vertices)
-        self.graph.hide_edges(self.edges - self.graph.hidden_edges)
-        self.state = "collapsed"
-
-    def remove(self, circle):
-
-        root = self.graph.get_vertex(self.root)
+        vertex = self.graph.get_vertex(root)
+        sg = self.get_subgraph(root)
+        sg.expand()
         if circle is not None:
-            root.update_circle(self.circle, self.graph.ax)
-        self.expand()
+            vertex.update_circle(circle, self.graph.ax)
 
-    def add_vertex(self, vx_id):
+    def expand_or_collapse(self, root):
 
-        if vx_id != self.root:
-            self.vertices.add(vx_id)
-        self.edges = self._get_edges()
+        if root in self.collapsed:
+            return self.expand(root)
+        elif root in self.expanded:
+            return self.collapse(root)
+        else:
+            pass
 
-    def remove_vertex(self, vx_id):
+    def expand(self, root):
 
-        if vx_id == self.root:
+        vertex = self.graph.get_vertex(root)
+        sg = self.get_subgraph(root)
+
+        errors = [ ]
+        errors.extend(self.graph.restore_vertices(sg.vertices - self.graph.visible_vertices))
+        errors.extend(self.graph.restore_edges(sg.edges - self.graph.visible_edges))
+
+        vertex.update_circle(sg.expanded_circle, self.graph.ax)
+        self._expanded[root] = self._collapsed.pop(root)
+
+        return errors
+
+    def collapse(self, root):
+
+        vertex = self.graph.get_vertex(root)
+        sg = self.get_subgraph(root)
+
+        for child in self.expanded & sg.vertices:
+            self.collapse(child)
+
+        errors = [ ]
+        errors.extend(self.graph.hide_vertices(sg.vertices - self.graph.hidden_vertices))
+        errors.extend(self.graph.hide_edges(sg.edges - self.graph.hidden_edges))
+
+        vertex.update_circle(sg.collapsed_circle, self.graph.ax)
+        self._collapsed[root] = self._expanded.pop(root)
+
+        return errors
+
+    def add_vertex(self, root, vx_id):
+
+        if vx_id != root:
+            sg = self.get_subgraph(root)
+            sg.vertices.add(vx_id)
+            sg.edges = self._get_edges(root, sg.vertices)
+
+    def remove_vertex(self, root, vx_id):
+
+        if vx_id == root:
             raise Exception("cannot remove root vertex from subgraph")
-        self.vertices.remove(vx_id)
-        self.edges = self._get_edges()
+        sg = self.get_subgraph(root)
+        sg.vertices.remove(vx_id)
+        self.edges = self._get_edges(root, sg.vertices)
 
-    def _get_edges(self):
+    def get_subgraph(self, root):
+
+        if root in self.collapsed:
+            return self._collapsed[root]
+        elif root in self.expanded:
+            return self._expanded[root]
+        else:
+            raise Exception("vertex is not the root of an exapndable subgraph")
+
+    @property
+    def collapsed(self):
+        return set(self._collapsed.keys())
+
+    @property
+    def expanded(self):
+        return set(self._expanded.keys())
+
+    def _get_edges(self, root, vertices):
 
         edges = set()
-        vertices = self.vertices | set([ self.root ])
-        for vx_id in vertices:
+        subgraph = vertices | set([ root ])
+        for vx_id in subgraph:
             vertex = self.graph.get_vertex(vx_id)
             for edge_id in vertex.out_edges:
                 edge = self.graph.get_edge(edge_id)
                 if edge.target in vertices:
                     edges.add(edge_id)
         return edges
+
+class ExpandableSubgraphData(object):
+
+    def __init__(self, root, vertices, edges, expanded_circle, collapsed_circle):
+
+        self.root = root
+        self.vertices = vertices
+        self.edges = edges
+        self.expanded_circle = expanded_circle
+        self.collapsed_circle = collapsed_circle
+
