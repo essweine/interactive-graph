@@ -21,19 +21,11 @@ class Vertex(object):
 
     def hide(self):
 
-        for edge_id in (self.in_edges | self.out_edges) & self.graph.visible_edges:
-            edge = self.graph.get_edge(edge_id)
-            edge.hide()
-
         if self.annotation.get_visible() is True:
             self.annotation.set_visible(False)
         self.circle.remove()
 
     def restore(self, ax):
-
-        for edge_id in (self.in_edges | self.out_edges) & self.graph.hidden_edges:
-            edge = self.graph.get_edge(edge_id)
-            edge.restore(ax)
 
         self.circle.set_figure(ax.figure)
         ax.add_artist(self.circle)
@@ -129,7 +121,7 @@ class Vertex(object):
         if Vertex.lock is not self:
             return
 
-        for edge in (self.in_edges | self.out_edges) & self.visible_edges:
+        for edge in (self.in_edges | self.out_edges) & self.graph.visible_edges:
             artist = self.graph.get_edge(edge)
             artist.update()
 

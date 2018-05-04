@@ -91,8 +91,10 @@ class InteractiveGraph(object):
             self._hidden_edges[edge_id] = self._visible_edges.pop(edge_id)
         for edge_id in vertex.in_edges & self.visible_edges:
             self._hidden_edges[edge_id] = self._visible_edges.pop(edge_id)
+            self.get_edge(edge_id).hide()
         for edge_id in vertex.out_edges & self.visible_edges:
             self._hidden_edges[edge_id] = self._visible_edges.pop(edge_id)
+            self.get_edge(edge_id).hide()
 
         vertex.hide()
 
@@ -127,11 +129,13 @@ class InteractiveGraph(object):
             edge = self.get_edge(edge_id)
             if self.vertex_visible(edge.source):
                 self._visible_edges[edge_id] = self._hidden_edges.pop(edge_id)
+                edge.restore(self.ax)
 
         for edge_id in vertex.out_edges:
             edge = self.get_edge(edge_id)
             if self.vertex_visible(edge.target):
                 self._visible_edges[edge_id] = self._hidden_edges.pop(edge_id)
+                edge.restore(self.ax)
 
         for edge_id in vertex.loops:
             self._visible_edges[edge_id] = self._hidden_edges.pop(edge_id)
