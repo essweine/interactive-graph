@@ -15,7 +15,7 @@ class InteractiveGraph(object):
         self._visible_vertices, self._visible_edges = { }, { }
         self._hidden_vertices, self._hidden_edges = { }, { }
 
-        self.press_action = "move"
+        self._press_action = "move"
         self._actions = {
             "hide": self.hide_vertex,
             "remove": self.remove_vertex,
@@ -31,8 +31,14 @@ class InteractiveGraph(object):
     def remove_action(self, name):
         del self._actions[name]
 
+    def set_action(self, name):
+
+        if name not in self._actions:
+            raise Exception("Invalid action")
+        self._press_action = name
+
     def perform_action(self, vx_id):
-        self._actions[self.press_action](vx_id)
+        self._actions[self._press_action](vx_id)
 
     def add_vertex(self, vx_id, xy, radius, label, redraw = True, **props):
 
@@ -328,6 +334,27 @@ class InteractiveGraph(object):
             return self._hidden_edges[edge_id]
         else:
             raise NonexistentVertexError(vx_id, "get")
+
+    def get_edges(self, vertices):
+
+        edges = set()
+        for vx_id in vertices:
+            vertex = self.get_vertex(vx_id)
+            for edge_id in vertex.out_edges:
+                edge = self.get_edge(edge_id)
+                if edge.target in vertices:
+                    edges.add(edge_id)
+        return edges
+
+    def filter_edges(self, vx_id, vertices):
+
+        edges = set()
+        vertex = self.get_vertex(vx_id)
+        for edge_id in vertex.edges:
+            edge = self.get_edges(edge_id)
+            if edge.source in vertices or edge.target in vertices:
+                edges.add(edge_id)
+        return edges
 
     def reset_view(self):
 

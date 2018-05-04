@@ -13,7 +13,7 @@ class TestExpandableSubgraph(unittest.TestCase):
         self.ig = InteractiveGraph(ax)
         self.sg = ExpandableSubgraph(self.ig)
         self.ig.add_action("expand/collapse", self.sg.expand_or_collapse)
-        self.ig.press_action = "expand/collapse"
+        self.ig.set_action("expand/collapse")
 
         vprops, eprops = { "color": (1.0, 0.0, 0.0) }, { "color": (0.0, 0.0, 0.0) }
         self.vertices, self.edges = [ ], [ ]
