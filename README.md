@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 from interactive_graph.graph import InteractiveGraph
 fig, ax = plt.subplots()
 ig = InteractiveGraph(ax)
-vprops = { "color": (0.0, 0.6, 0.8) }
-radius = 0.01
+
+vprops = { "radius": 0.01, "color": (0.0, 0.6, 0.8) }
 for vid, xy in enumerate(np.random.rand(10, 2)):
-    ig.add_vertex(vid, xy, radius, label = "vertex {n}".format(n = idx), **vprops)
+    ig.add_vertex(vid, xy, label = "vertex {n}".format(n = idx), **vprops)
 
 eprops = { "color": (0.0, 0.0, 0.0), "lw": 0.1 }
 for eid, (v1, v2) in enumerate(zip(np.random.randint(0, 10, 25), np.random.randint(0, 10, 25))):

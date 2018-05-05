@@ -11,7 +11,7 @@ class TestGraphOps(unittest.TestCase):
         fig, ax = plt.subplots()
         self.ig = InteractiveGraph(ax)
         for idx, xy in enumerate(np.random.rand(6, 2)):
-            self.ig.add_vertex(idx, xy, 0.05, label = "vertex {n}".format(n = idx))
+            self.ig.add_vertex(idx, xy, label = "vertex {n}".format(n = idx))
         edge_id = 0
         for v in range(1, 6):
             self.ig.add_edge(edge_id, 0, v)

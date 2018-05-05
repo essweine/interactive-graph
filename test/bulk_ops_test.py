@@ -11,11 +11,11 @@ class TestBulkGraphOps(unittest.TestCase):
         fig, ax = plt.subplots()
         self.ig = InteractiveGraph(ax)
 
-        self.vprops, self.eprops = { "color": (1.0, 0.0, 0.0) }, { "color": (0.0, 0.0, 0.0) }
+        self.vprops, self.eprops = { "radius": 0.05, "color": (1.0, 0.0, 0.0) }, { "color": (0.0, 0.0, 0.0) }
         self.vertices, self.edges = [ ], [ ]
 
         for vid, xy in enumerate(np.random.rand(6, 2)):
-            self.vertices.append((vid, xy, 0.05, "vertex {n}".format(n = vid)))
+            self.vertices.append((vid, xy, "vertex {n}".format(n = vid)))
         for eid, (v1, v2) in enumerate(zip(np.random.randint(0, 6, 15), np.random.randint(0, 6, 15))):
             self.edges.append((eid, v1, v2))
 
@@ -26,7 +26,7 @@ class TestBulkGraphOps(unittest.TestCase):
         return vx_results, edge_results
 
     def hide_vertices(self):
-        return self.ig.hide_vertices([ vid for vid, xy, r, l in self.vertices ])
+        return self.ig.hide_vertices([ vid for vid, xy, l in self.vertices ])
 
     def hide_edges(self):
         return self.ig.hide_edges([ eid for eid, s, t in self.edges ])
@@ -69,7 +69,7 @@ class TestBulkGraphOps(unittest.TestCase):
 
         self.add_all()
         self.hide_vertices()
-        results = self.ig.restore_vertices([ vid for vid, xy, r, l in self.vertices ])
+        results = self.ig.restore_vertices([ vid for vid, xy, l in self.vertices ])
         self.assertItemsEqual(results, [ ], "restore vertices returned with errors")
         self.assertEqual(len(self.ig.visible_vertices), 6, 
           "number of vertices was %d, expected 6" % len(self.ig.visible_vertices))
@@ -98,7 +98,7 @@ class TestBulkGraphOps(unittest.TestCase):
     def test_bulk_remove_vertices(self):
 
         self.add_all()
-        results = self.ig.remove_vertices([ vid for vid, xy, r, l in self.vertices ])
+        results = self.ig.remove_vertices([ vid for vid, xy, l in self.vertices ])
         self.assertItemsEqual(results, [ ], "remove vertices returned with errors")
         self.assertEqual(len(self.ig.visible_vertices), 0, 
           "number of vertices was %d, expected 0" % len(self.ig.visible_vertices))

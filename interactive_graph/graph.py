@@ -40,14 +40,12 @@ class InteractiveGraph(object):
     def perform_action(self, vx_id):
         self._actions[self._press_action](vx_id)
 
-    def add_vertex(self, vx_id, xy, radius, label, redraw = True, **props):
+    def add_vertex(self, vx_id, xy, label, redraw = True, **props):
 
         if self.vertex_exists(vx_id):
             raise DuplicateVertexError(vx_id)
 
-        c = plt.Circle(xy, radius, picker = True, **props)
-        self.ax.add_patch(c)
-        vx = Vertex(vx_id, self, c, label)
+        vx = Vertex(vx_id, self, xy, label, **props)
         self._visible_vertices[vx_id] = vx
         vx.connect()
 
@@ -66,17 +64,12 @@ class InteractiveGraph(object):
         if src_id == tgt_id:
             src = self.get_vertex(src_id)
             src.add_loop(edge_id)
-            edge = Edge(edge_id, self, src_id, tgt_id, None)
         else:
             src, tgt = self.get_vertex(src_id), self.get_vertex(tgt_id)
             src.add_out_edge(edge_id)
             tgt.add_in_edge(edge_id)
-            src_x, src_y = src.circle.center
-            tgt_x, tgt_y = tgt.circle.center
-            line = plt.Line2D([ src_x, tgt_x ], [ src_y, tgt_y ], **props)
-            self.ax.add_line(line)
-            edge = Edge(edge_id, self, src_id, tgt_id, line)
-            edge.update()
+
+        edge = Edge(edge_id, self, src_id, tgt_id, **props)
 
         if self.vertex_visible(src_id) and self.vertex_visible(tgt_id):
             self._visible_edges[edge_id] = edge

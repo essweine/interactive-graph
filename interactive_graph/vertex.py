@@ -1,14 +1,19 @@
+import matplotlib.pyplot as plt
+from copy import deepcopy
+
 class Vertex(object):
 
     lock = None
     annotation_props = dict(boxstyle = "square", fc = (0.2, 0.2, 0.2, 0.6), ec = (0.2, 0.2, 0.2, 0.8))
 
-    def __init__(self, vertex_id, graph, circle, label = ""):
+    def __init__(self, vertex_id, graph, xy, label = "", **props):
 
         self.vertex_id = vertex_id
         self.graph = graph
-        self.circle = circle
-        x, y = circle.center
+        self.default_props = props
+        self.circle = plt.Circle(xy, **props)
+        self.graph.ax.add_artist(self.circle)
+        x, y = xy
         self.annotation = self.circle.axes.text(x, y, label, bbox = Vertex.annotation_props, visible = False)
 
         self._vertices = set()
@@ -35,17 +40,24 @@ class Vertex(object):
         self.annotation.remove()
         self.circle.remove()
 
-    def update_circle(self, new, ax):
+    def update_circle(self, **props):
 
         self.disconnect()
         self.circle.remove()
-        new.center = self.circle.center
+
+        new_props = deepcopy(self.default_props)
+        new_props.update(props)
+        new = plt.Circle(self.circle.center, **new_props)
+        self.circle = new
+
+        ax = self.graph.ax
         new.set_figure(ax.figure)
         ax.add_artist(new)
-        self.circle = new
+
         for edge in (self.in_edges | self.out_edges) & self.graph.visible_edges:
             artist = self.graph.get_edge(edge)
             artist.update()
+
         self.connect()
 
     def on_press(self, event):
@@ -57,7 +69,7 @@ class Vertex(object):
         if not contains:
             return
 
-        if self.graph.press_action == "move":
+        if self.graph._press_action == "move":
             self.move(event)
         else:
             self.graph.perform_action(self.vertex_id)

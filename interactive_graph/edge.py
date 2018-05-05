@@ -1,17 +1,22 @@
-import warnings
-warnings.filterwarnings("error")
-
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy.linalg import norm
 
 class Edge(object):
 
-    def __init__(self, edge_id, graph, source, target, line):
+    def __init__(self, edge_id, graph, source, target, **props):
 
         self.edge_id = edge_id
         self.graph = graph
         self.source, self.target = source, target
-        self.line = line
+        self.default_props = props
+
+        if source != target:
+            self.line = plt.Line2D([ 0, 0 ], [ 0, 0 ], **props)
+            self.graph.ax.add_artist(self.line)
+            self.update()
+        else:
+            self.line = None
 
     def hide(self):
 
@@ -37,7 +42,7 @@ class Edge(object):
                 self.line.set_xdata([ src_x - r1, tgt_x + r2 ])
             return
 
-        v1, v2 = self.line.get_xydata()
+        v1, v2 = np.array([ src_x, src_y ]), np.array([ tgt_x, tgt_y ])
         h = norm(v2 - v1)
         u2 = v1 + (v2 - v1) / h
 
