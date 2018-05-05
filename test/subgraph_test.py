@@ -50,11 +50,11 @@ class TestExpandableSubgraph(unittest.TestCase):
         self.assertItemsEqual(sg1, [ ], "create subgraph 1 returned with errors")
         self.assertItemsEqual(sg2, [ ], "create subgraph 2 returned with errors")
         self.assertItemsEqual(self.ig.visible_vertices, range(10), "vertices in expanded graphs are hidden")
-        circle = self.ig.get_vertex(self.sg1_root).circle
+        circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_fc(), (0.0, 0.0, 0.0, 1.0), "expanded root circle does not appear in expanded graph")
 
         self.ig.perform_action(self.sg1_root)
-        circle = self.ig.get_vertex(self.sg1_root).circle
+        circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_radius(), 0.1, "collapsed root circle does not appear in collapsed graph")
         self.assertItemsEqual(self.ig.visible_vertices, range(3, 10), "vertices in collapsed graphs are visible")
         self.assertIn(24, self.ig.visible_edges, "edge from collapsed root to collapsed root is hidden")
@@ -78,11 +78,11 @@ class TestExpandableSubgraph(unittest.TestCase):
         self.assertItemsEqual(sg2, [ ], "create subgraph 2 returned with errors")
         self.assertItemsEqual(self.ig.visible_vertices, [ self.sg1_root, self.sg2_root, 8, 9 ], 
                 "vertices in collapsed subgraph are visible")
-        circle = self.ig.get_vertex(self.sg1_root).circle
+        circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_radius(), 0.1, "collapsed root circle does not appear in collapsed graph")
 
         self.ig.perform_action(self.sg1_root)
-        circle = self.ig.get_vertex(self.sg1_root).circle
+        circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_fc(), (0.0, 0.0, 0.0, 1.0), "expanded root circle does not appear in expanded graph")
         self.assertItemsEqual(self.ig.visible_vertices, self.sg1_vertices | set([ self.sg1_root, self.sg2_root ]) | set([ 8, 9 ]), 
                 "vertices in expanded graph are hidden")

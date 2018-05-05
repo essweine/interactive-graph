@@ -17,6 +17,7 @@ class InteractiveGraph(object):
 
         self._press_action = "move"
         self._actions = {
+            "move": None,
             "hide": self.hide_vertex,
             "remove": self.remove_vertex,
         }
@@ -38,6 +39,7 @@ class InteractiveGraph(object):
         self._press_action = name
 
     def perform_action(self, vx_id):
+
         self._actions[self._press_action](vx_id)
 
     def add_vertex(self, vx_id, xy, label, redraw = True, **props):
@@ -47,7 +49,6 @@ class InteractiveGraph(object):
 
         vx = Vertex(vx_id, self, xy, label, **props)
         self._visible_vertices[vx_id] = vx
-        vx.connect()
 
     def add_edge(self, edge_id, src_id, tgt_id, redraw = True, **props):
 

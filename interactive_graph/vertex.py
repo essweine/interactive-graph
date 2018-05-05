@@ -3,160 +3,170 @@ from copy import deepcopy
 
 class Vertex(object):
 
-    lock = None
+    _lock = None
     annotation_props = dict(boxstyle = "square", fc = (0.2, 0.2, 0.2, 0.6), ec = (0.2, 0.2, 0.2, 0.8))
 
     def __init__(self, vertex_id, graph, xy, label = "", **props):
 
-        self.vertex_id = vertex_id
-        self.graph = graph
-        self.default_props = props
-        self.circle = plt.Circle(xy, **props)
-        self.graph.ax.add_artist(self.circle)
+        self._vertex_id = vertex_id
+        self._default_props = props
+        self._graph = graph
+        self._circle = plt.Circle(xy, **props)
+        self._graph.ax.add_artist(self._circle)
+        self._connect()
+
         x, y = xy
-        self.annotation = self.circle.axes.text(x, y, label, bbox = Vertex.annotation_props, visible = False)
+        self._annotation = self._circle.axes.text(x, y, label, bbox = Vertex.annotation_props, visible = False)
 
         self._vertices = set()
         self._in_edges = set()
         self._out_edges = set()
         self._loops = set()
 
-        self.press = None
-        self.background = None
+        self._press = None
+        self._background = None
 
     def hide(self):
 
-        if self.annotation.get_visible() is True:
-            self.annotation.set_visible(False)
-        self.circle.remove()
+        if self._annotation.get_visible() is True:
+            self._annotation.set_visible(False)
+        self._circle.remove()
 
     def restore(self, ax):
 
-        self.circle.set_figure(ax.figure)
-        ax.add_artist(self.circle)
+        self._circle.set_figure(ax.figure)
+        ax.add_artist(self._circle)
 
     def remove(self):
 
-        self.annotation.remove()
-        self.circle.remove()
+        self._annotation.remove()
+        self._circle.remove()
 
     def update_circle(self, **props):
 
-        self.disconnect()
-        self.circle.remove()
+        self._disconnect()
+        self._circle.remove()
 
-        new_props = deepcopy(self.default_props)
+        new_props = deepcopy(self._default_props)
         new_props.update(props)
-        new = plt.Circle(self.circle.center, **new_props)
-        self.circle = new
+        new = plt.Circle(self._circle.center, **new_props)
+        self._circle = new
 
-        ax = self.graph.ax
+        ax = self._graph.ax
         new.set_figure(ax.figure)
         ax.add_artist(new)
 
-        for edge in (self.in_edges | self.out_edges) & self.graph.visible_edges:
-            artist = self.graph.get_edge(edge)
+        for edge in (self.in_edges | self.out_edges) & self._graph.visible_edges:
+            artist = self._graph.get_edge(edge)
             artist.update()
 
-        self.connect()
+        self._connect()
 
-    def on_press(self, event):
+    def _on_press(self, event):
 
-        if event.inaxes != self.circle.axes:
+        if event.inaxes != self._circle.axes:
             return
 
-        contains, attrd = self.circle.contains(event)
+        contains, attrd = self._circle.contains(event)
         if not contains:
             return
 
-        if self.graph._press_action == "move":
-            self.move(event)
+        if self._graph._press_action == "move":
+            self._move(event)
         else:
-            self.graph.perform_action(self.vertex_id)
+            self._graph.perform_action(self._vertex_id)
 
-    def move(self, event):
+    def _move(self, event):
 
-        if Vertex.lock is not None:
+        if Vertex._lock is not None:
             return
 
-        Vertex.lock = self
+        Vertex._lock = self
 
-        if self.annotation.get_visible() is True:
-            self.annotation.set_visible(False)
+        if self._annotation.get_visible() is True:
+            self._annotation.set_visible(False)
 
         x0, y0 = event.xdata, event.ydata
-        self.press = x0, y0, event.xdata, event.ydata
+        self._press = x0, y0, event.xdata, event.ydata
 
-        canvas = self.circle.figure.canvas
-        axes = self.circle.axes
-        self.circle.set_animated(True)
+        canvas = self._circle.figure.canvas
+        axes = self._circle.axes
+        self._circle.set_animated(True)
         canvas.draw()
-        self.background = canvas.copy_from_bbox(self.circle.axes.bbox)
-        axes.draw_artist(self.circle)
+        self._background = canvas.copy_from_bbox(self._circle.axes.bbox)
+        axes.draw_artist(self._circle)
         canvas.blit(axes.bbox)
 
-    def on_motion(self, event):
+    def _on_motion(self, event):
 
-        if event.inaxes != self.circle.axes:
+        if event.inaxes != self._circle.axes:
             return
 
-        contains, attrd = self.circle.contains(event)
-        if not contains and self.annotation.get_visible() is True:
-            self.annotation.set_visible(False)
-            self.annotation.figure.canvas.draw()
-        if contains and self.press is None:
-            self.annotation.set_visible(True)
-            self.annotation.figure.canvas.draw()
+        contains, attrd = self._circle.contains(event)
+        if not contains and self._annotation.get_visible() is True:
+            self._annotation.set_visible(False)
+            self._annotation.figure.canvas.draw()
+        if contains and self._press is None:
+            self._annotation.set_visible(True)
+            self._annotation.figure.canvas.draw()
 
-        if self.press is None:
+        if self._press is None:
             return
 
-        if Vertex.lock is not self:
+        if Vertex._lock is not self:
             return
 
-        x0, y0, xpress, ypress = self.press
+        x0, y0, xpress, ypress = self._press
         dx, dy = event.xdata - xpress, event.ydata - ypress
-        self.circle.center = (x0 + dx, y0 + dy)
+        self._circle.center = (x0 + dx, y0 + dy)
 
-        for edge in (self.in_edges | self.out_edges) & self.graph.visible_edges:
-            artist = self.graph.get_edge(edge)
+        for edge in (self.in_edges | self.out_edges) & self._graph.visible_edges:
+            artist = self._graph.get_edge(edge)
             artist.update()
 
-        canvas = self.circle.figure.canvas
-        axes = self.circle.axes
-        canvas.restore_region(self.background)
-        axes.draw_artist(self.circle)
+        canvas = self._circle.figure.canvas
+        axes = self._circle.axes
+        canvas.restore_region(self._background)
+        axes.draw_artist(self._circle)
         canvas.blit(axes.bbox)
 
-    def on_release(self, event):
+    def _on_release(self, event):
 
-        if Vertex.lock is not self:
+        if Vertex._lock is not self:
             return
 
-        for edge in (self.in_edges | self.out_edges) & self.graph.visible_edges:
-            artist = self.graph.get_edge(edge)
+        for edge in (self.in_edges | self.out_edges) & self._graph.visible_edges:
+            artist = self._graph.get_edge(edge)
             artist.update()
 
-        self.press = None
-        Vertex.lock = None
-        self.circle.set_animated(False)
-        self.background = None
-        self.circle.figure.canvas.draw()
+        self._press = None
+        Vertex._lock = None
+        self._circle.set_animated(False)
+        self._background = None
+        self._circle.figure.canvas.draw()
 
-        x, y = self.circle.center
-        self.annotation.set_x(x), self.annotation.set_y(y)
+        x, y = self._circle.center
+        self._annotation.set_x(x), self._annotation.set_y(y)
 
-    def connect(self):
+    def _connect(self):
 
-        self.cidpress = self.circle.figure.canvas.mpl_connect("button_press_event", self.on_press)
-        self.cidrelease = self.circle.figure.canvas.mpl_connect("button_release_event", self.on_release)
-        self.cidmotion = self.circle.figure.canvas.mpl_connect("motion_notify_event", self.on_motion)
+        self._cidpress = self._circle.figure.canvas.mpl_connect("button_press_event", self._on_press)
+        self._cidrelease = self._circle.figure.canvas.mpl_connect("button_release_event", self._on_release)
+        self._cidmotion = self._circle.figure.canvas.mpl_connect("motion_notify_event", self._on_motion)
 
-    def disconnect(self):
+    def _disconnect(self):
 
-        self.circle.figure.canvas.mpl_disconnect(self.cidpress)
-        self.circle.figure.canvas.mpl_disconnect(self.cidrelease)
-        self.circle.figure.canvas.mpl_disconnect(self.cidmotion)
+        self._circle.figure.canvas.mpl_disconnect(self._cidpress)
+        self._circle.figure.canvas.mpl_disconnect(self._cidrelease)
+        self._circle.figure.canvas.mpl_disconnect(self._cidmotion)
+
+    @property
+    def vertex_id(self):
+        return self._vertex_id
+
+    @property
+    def default_props(self):
+        return self._default_props
 
     @property
     def in_edges(self):

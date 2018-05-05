@@ -4,15 +4,15 @@ class ExpandableSubgraph(object):
 
     def __init__(self, graph):
 
-        self.graph = graph
+        self._graph = graph
         self._collapsed, self._expanded = { }, { }
 
     def add(self, root, vertices, expanded_props = { }, collapsed_props = { }, state = "collapsed"):
 
-        if not self.graph.vertex_exists(root):
+        if not self._graph.vertex_exists(root):
             raise NonexistentVertexError(root, "create subgraph")
 
-        edges = self.graph.get_edges(set([ root ]) | vertices)
+        edges = self._graph.get_edges(set([ root ]) | vertices)
 
         if state == "collapsed":
             # This is a little unintuitive, but collapse moves a vertex from expanded to collapsed
@@ -28,7 +28,7 @@ class ExpandableSubgraph(object):
         # Restore default artist
         if root in self.collapsed:
             self.expand(root)
-        vertex = self.graph.get_vertex(root)
+        vertex = self._graph.get_vertex(root)
         vertex.update_circle()
         return self._expanded.pop(root)
 
@@ -43,12 +43,12 @@ class ExpandableSubgraph(object):
 
     def expand(self, root):
 
-        vertex = self.graph.get_vertex(root)
+        vertex = self._graph.get_vertex(root)
         sg = self.get_subgraph(root)
 
         errors = [ ]
-        errors.extend(self.graph.restore_vertices(sg.vertices - self.graph.visible_vertices))
-        errors.extend(self.graph.restore_edges(sg.edges - self.graph.visible_edges))
+        errors.extend(self._graph.restore_vertices(sg.vertices - self._graph.visible_vertices))
+        errors.extend(self._graph.restore_edges(sg.edges - self._graph.visible_edges))
 
         vertex.update_circle(**sg.expanded)
         self._expanded[root] = self._collapsed.pop(root)
@@ -57,15 +57,15 @@ class ExpandableSubgraph(object):
 
     def collapse(self, root):
 
-        vertex = self.graph.get_vertex(root)
+        vertex = self._graph.get_vertex(root)
         sg = self.get_subgraph(root)
 
         for child in self.expanded & sg.vertices:
             self.collapse(child)
 
         errors = [ ]
-        errors.extend(self.graph.hide_vertices(sg.vertices - self.graph.hidden_vertices))
-        errors.extend(self.graph.hide_edges(sg.edges - self.graph.hidden_edges))
+        errors.extend(self._graph.hide_vertices(sg.vertices - self._graph.hidden_vertices))
+        errors.extend(self._graph.hide_edges(sg.edges - self._graph.hidden_edges))
 
         vertex.update_circle(**sg.collapsed)
         self._collapsed[root] = self._expanded.pop(root)
@@ -77,7 +77,7 @@ class ExpandableSubgraph(object):
         if vx_id != root:
             sg = self.get_subgraph(root)
             sg.vertices.add(vx_id)
-            sg.edges |= self.graph.filter_edges(vx_id, set([ root ]) | sg.vertices)
+            sg.edges |= self._graph.filter_edges(vx_id, set([ root ]) | sg.vertices)
 
     def remove_vertex(self, root, vx_id):
 
@@ -85,7 +85,7 @@ class ExpandableSubgraph(object):
             raise Exception("cannot remove root vertex from subgraph")
         sg = self.get_subgraph(root)
         sg.vertices.remove(vx_id)
-        self.edges -= self.graph.filter_edges(vx_id, set([ root ]) | sg.vertices)
+        self.edges -= self._graph.filter_edges(vx_id, set([ root ]) | sg.vertices)
 
     def get_subgraph(self, root):
 
