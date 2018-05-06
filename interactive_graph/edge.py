@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("error")
+
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.linalg import norm

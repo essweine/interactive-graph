@@ -12,8 +12,8 @@ class TestExpandableSubgraph(unittest.TestCase):
         fig, ax = plt.subplots()
         self.ig = InteractiveGraph(ax)
         self.sg = ExpandableSubgraph(self.ig)
-        self.ig.add_action("expand/collapse", self.sg.expand_or_collapse)
-        self.ig.set_action("expand/collapse")
+        self.ig.add_press_action("expand/collapse", self.sg.expand_or_collapse)
+        self.ig.set_press_action("expand/collapse")
 
         vprops, eprops = { "radius": 0.05, "color": (1.0, 0.0, 0.0) }, { "color": (0.0, 0.0, 0.0) }
         self.vertices, self.edges = [ ], [ ]
@@ -53,7 +53,7 @@ class TestExpandableSubgraph(unittest.TestCase):
         circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_fc(), (0.0, 0.0, 0.0, 1.0), "expanded root circle does not appear in expanded graph")
 
-        self.ig.perform_action(self.sg1_root)
+        self.ig.do_press_action(self.sg1_root)
         circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_radius(), 0.1, "collapsed root circle does not appear in collapsed graph")
         self.assertItemsEqual(self.ig.visible_vertices, range(3, 10), "vertices in collapsed graphs are visible")
@@ -61,7 +61,7 @@ class TestExpandableSubgraph(unittest.TestCase):
         self.assertIn(25, self.ig.visible_edges, "edge from collapsed root to expanded root is hidden")
         self.assertNotIn(26, self.ig.visible_edges, "edge from collapsed graph to expanded graph is visible")
 
-        self.ig.perform_action(self.sg2_root)
+        self.ig.do_press_action(self.sg2_root)
         self.assertItemsEqual(self.ig.visible_vertices, set([ self.sg1_root, self.sg2_root ]) | self.sg3_vertices,
                 "vertices in collapsed subgraphs are visible")
         self.assertIn(24, self.ig.visible_edges, "edge from collapsed root to collapsed root is hidden")
@@ -81,7 +81,7 @@ class TestExpandableSubgraph(unittest.TestCase):
         circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_radius(), 0.1, "collapsed root circle does not appear in collapsed graph")
 
-        self.ig.perform_action(self.sg1_root)
+        self.ig.do_press_action(self.sg1_root)
         circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_fc(), (0.0, 0.0, 0.0, 1.0), "expanded root circle does not appear in expanded graph")
         self.assertItemsEqual(self.ig.visible_vertices, self.sg1_vertices | set([ self.sg1_root, self.sg2_root ]) | set([ 8, 9 ]), 
@@ -90,7 +90,7 @@ class TestExpandableSubgraph(unittest.TestCase):
         self.assertNotIn(25, self.ig.visible_edges, "edge from expanded root to collapsed graph is visible")
         self.assertIn(26, self.ig.visible_edges, "edge from expanded graph to collapsed root is hidden")
 
-        self.ig.perform_action(self.sg2_root)
+        self.ig.do_press_action(self.sg2_root)
         self.assertItemsEqual(self.ig.visible_vertices, range(10), "vertices in expanded graphs are hidden")
         self.assertItemsEqual(self.ig.visible_edges, range(29), "edges in expanded graphs are hidden")
 
@@ -107,12 +107,12 @@ class TestExpandableSubgraph(unittest.TestCase):
         self.assertItemsEqual(self.ig.visible_vertices, [ self.sg1_root, self.sg2_root ], 
             "vertices in collapsed subgraph are visible")
 
-        self.ig.perform_action(self.sg2_root)
+        self.ig.do_press_action(self.sg2_root)
         self.assertItemsEqual(self.ig.visible_vertices, range(3, 8), "nested subgraph is visible")
-        self.ig.perform_action(self.sg3_root)
+        self.ig.do_press_action(self.sg3_root)
         self.assertItemsEqual(self.ig.visible_vertices, range(3, 10), "nested graph was not expanded")
-        self.ig.perform_action(self.sg2_root)
-        self.ig.perform_action(self.sg2_root)
+        self.ig.do_press_action(self.sg2_root)
+        self.ig.do_press_action(self.sg2_root)
         self.assertItemsEqual(self.ig.visible_vertices, range(3, 8), "nested graph was not collapsed")
 
 if __name__ == '__main__':

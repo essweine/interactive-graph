@@ -16,31 +16,31 @@ class InteractiveGraph(object):
         self._hidden_vertices, self._hidden_edges = { }, { }
 
         self._press_action = "move"
-        self._actions = {
+        self._press_actions = {
             "move": None,
             "hide": self.hide_vertex,
             "remove": self.remove_vertex,
         }
 
     @property
-    def actions(self):
-        return self._actions.keys()
+    def press_actions(self):
+        return self._press_actions.keys()
 
-    def add_action(self, name, handler):
-        self._actions[name] = handler
+    def add_press_action(self, name, handler):
+        self._press_actions[name] = handler
 
-    def remove_action(self, name):
-        del self._actions[name]
+    def remove_press_action(self, name):
+        del self._press_actions[name]
 
-    def set_action(self, name):
+    def set_press_action(self, name):
 
-        if name not in self._actions:
+        if name not in self._press_actions:
             raise Exception("Invalid action")
         self._press_action = name
 
-    def perform_action(self, vx_id):
+    def do_press_action(self, vx_id):
 
-        self._actions[self._press_action](vx_id)
+        self._press_actions[self._press_action](vx_id)
 
     def add_vertex(self, vx_id, xy, label, redraw = True, **props):
 

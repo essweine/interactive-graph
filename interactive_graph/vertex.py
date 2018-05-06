@@ -55,6 +55,7 @@ class Vertex(object):
         ax = self._graph.ax
         new.set_figure(ax.figure)
         ax.add_artist(new)
+        new.figure.canvas.draw_idle()
 
         for edge in (self.in_edges | self.out_edges) & self._graph.visible_edges:
             artist = self._graph.get_edge(edge)
@@ -74,7 +75,7 @@ class Vertex(object):
         if self._graph._press_action == "move":
             self._move(event)
         else:
-            self._graph.perform_action(self._vertex_id)
+            self._graph.do_press_action(self._vertex_id)
 
     def _move(self, event):
 
