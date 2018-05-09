@@ -253,7 +253,7 @@ class InteractiveGraph(object):
 
     @redraw
     def add_vertices(self, vertices, **props):
-        return filter(lambda v: v is not None, [ self.add_vertex(*vx, **props) for vx in vertices ])
+        return filter(lambda v: v is not None, [ self.add_vertex(*vx, redraw = False, **props) for vx in vertices ])
 
     @redraw
     def update_vertices_props(self, vertices, **props):
@@ -264,8 +264,8 @@ class InteractiveGraph(object):
         return filter(lambda v: v is not None, [ self.restore_vertex_props(vx, redraw = False) for vx in vertices ])
 
     @redraw
-    def add_edges(self, edges, redraw = False, **props):
-        return filter(lambda v: v is not None, [ self.add_edge(*e, **props) for e in edges ])
+    def add_edges(self, edges, **props):
+        return filter(lambda v: v is not None, [ self.add_edge(*e, redraw = False, **props) for e in edges ])
 
     @redraw
     def hide_vertices(self, vertices):
