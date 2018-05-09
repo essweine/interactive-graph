@@ -38,17 +38,37 @@ class InteractiveGraph(object):
             raise Exception("Invalid action")
         self._press_action = name
 
-    def do_press_action(self, vx_id):
+    def do_press_action(self, vxid):
 
-        self._press_actions[self._press_action](vx_id)
+        self._press_actions[self._press_action](vxid)
 
-    def add_vertex(self, vx_id, xy, label, redraw = True, **props):
+    def add_vertex(self, vxid, xy, label, redraw = True, **props):
 
-        if self.vertex_exists(vx_id):
-            raise DuplicateVertexError(vx_id)
+        if self.vertex_exists(vxid):
+            raise DuplicateVertexError(vxid)
 
-        vx = Vertex(vx_id, self, xy, label, **props)
-        self._visible_vertices[vx_id] = vx
+        circle = plt.Circle(xy, **props)
+        self.ax.add_patch(circle)
+        vx = Vertex(vxid, self, circle, label)
+        vx._connect()
+        self._visible_vertices[vxid] = vx
+
+        if redraw:
+            self.ax.figure.canvas.draw()
+
+    def update_vertex_props(self, vxid, redraw = True, **props):
+
+        vx = self.get_vertex(vxid)
+        vx.update_circle_props(**props)
+        if redraw:
+            self.ax.figure.canvas.draw()
+
+    def restore_vertex_props(self, vxid, redraw = True):
+
+        vx = self.get_vertex(vxid)
+        vx.restore_circle_props()
+        if redraw:
+            self.ax.figure.canvas.draw()
 
     def add_edge(self, edge_id, src_id, tgt_id, redraw = True, **props):
 
@@ -77,15 +97,15 @@ class InteractiveGraph(object):
         else:
             self._hidden_edges[edge_id] = edge
 
-    def hide_vertex(self, vx_id, redraw = True):
+    def hide_vertex(self, vxid, redraw = True):
 
-        if not self.vertex_exists(vx_id):
-            raise NonexistentVertexError(vx_id, "hide")
-        elif not self.vertex_visible(vx_id):
-            raise VertexActionError(vx_id, "hide", "vertex already hidden")
+        if not self.vertex_exists(vxid):
+            raise NonexistentVertexError(vxid, "hide")
+        elif not self.vertex_visible(vxid):
+            raise VertexActionError(vxid, "hide", "vertex already hidden")
 
-        vertex = self.get_vertex(vx_id)
-        self._hidden_vertices[vx_id] = self._visible_vertices.pop(vx_id)
+        vertex = self.get_vertex(vxid)
+        self._hidden_vertices[vxid] = self._visible_vertices.pop(vxid)
 
         for edge_id in vertex.loops & self.visible_edges:
             self._hidden_edges[edge_id] = self._visible_edges.pop(edge_id)
@@ -116,14 +136,14 @@ class InteractiveGraph(object):
         if redraw:
             self.ax.figure.canvas.draw()
 
-    def restore_vertex(self, vx_id, redraw = True):
+    def restore_vertex(self, vxid, redraw = True):
 
-        if not self.vertex_exists(vx_id):
-            raise NonexistentVertexError(vx_id, "restore")
-        if self.vertex_visible(vx_id):
-            raise VertexActionError(vx_id, "restore", "vertex already visible")
+        if not self.vertex_exists(vxid):
+            raise NonexistentVertexError(vxid, "restore")
+        if self.vertex_visible(vxid):
+            raise VertexActionError(vxid, "restore", "vertex already visible")
 
-        vertex = self.get_vertex(vx_id)
+        vertex = self.get_vertex(vxid)
 
         for edge_id in vertex.in_edges:
             edge = self.get_edge(edge_id)
@@ -140,7 +160,7 @@ class InteractiveGraph(object):
         for edge_id in vertex.loops:
             self._visible_edges[edge_id] = self._hidden_edges.pop(edge_id)
 
-        self._visible_vertices[vx_id] = self._hidden_vertices.pop(vx_id)
+        self._visible_vertices[vxid] = self._hidden_vertices.pop(vxid)
         vertex.restore(self.ax)
 
         if redraw:
@@ -170,12 +190,12 @@ class InteractiveGraph(object):
         if redraw:
             self.ax.figure.canvas.draw()
 
-    def remove_vertex(self, vx_id, redraw = True):
+    def remove_vertex(self, vxid, redraw = True):
 
-        if not self.vertex_exists(vx_id):
-            raise NonexistentVertexError(vx_id, "remove")
+        if not self.vertex_exists(vxid):
+            raise NonexistentVertexError(vxid, "remove")
 
-        vertex = self._visible_vertices[vx_id]
+        vertex = self._visible_vertices[vxid]
 
         for edge_id in vertex.loops & self.visible_edges:
             edge = self._visible_edges.pop(edge_id)
@@ -191,9 +211,9 @@ class InteractiveGraph(object):
             edge.hide()
 
         if self.vertex_visible:
-            self._visible_vertices.pop(vx_id)
+            self._visible_vertices.pop(vxid)
         else:
-            self._hidden_vertices.pop(vx_id)
+            self._hidden_vertices.pop(vxid)
 
         vertex.remove()
 
@@ -236,7 +256,15 @@ class InteractiveGraph(object):
         return filter(lambda v: v is not None, [ self.add_vertex(*vx, **props) for vx in vertices ])
 
     @redraw
-    def add_edges(self, edges, **props):
+    def update_vertices_props(self, vertices, **props):
+        return filter(lambda v: v is not None, [ self.update_vertex_props(*vx, **props) for vx in vertices ])
+
+    @redraw
+    def restore_vertices_props(self, vertices):
+        return filter(lambda v: v is not None, [ self.update_vertex_props(*vx) for vx in vertices ])
+
+    @redraw
+    def add_edges(self, edges, redraw = False, **props):
         return filter(lambda v: v is not None, [ self.add_edge(*e, **props) for e in edges ])
 
     @redraw
@@ -299,26 +327,26 @@ class InteractiveGraph(object):
     def hidden_edges(self):
         return set(self._hidden_edges.keys())
 
-    def vertex_exists(self, vx_id):
-        return vx_id in self.vertices
+    def vertex_exists(self, vxid):
+        return vxid in self.vertices
 
     def edge_exists(self, edge_id):
         return edge_id in self.edges
 
-    def vertex_visible(self, vx_id):
-        return vx_id in self.visible_vertices
+    def vertex_visible(self, vxid):
+        return vxid in self.visible_vertices
 
     def edge_visible(self, edge_id):
         return edge_id in self.visible_edges
 
-    def get_vertex(self, vx_id):
+    def get_vertex(self, vxid):
 
-        if vx_id in self._visible_vertices:
-            return self._visible_vertices[vx_id]
-        elif vx_id in self._hidden_vertices:
-            return self._hidden_vertices[vx_id]
+        if vxid in self._visible_vertices:
+            return self._visible_vertices[vxid]
+        elif vxid in self._hidden_vertices:
+            return self._hidden_vertices[vxid]
         else:
-            raise NonexistentVertexError(vx_id, "get")
+            raise NonexistentVertexError(vxid, "get")
 
     def get_edge(self, edge_id):
 
@@ -327,23 +355,23 @@ class InteractiveGraph(object):
         elif edge_id in self._hidden_edges:
             return self._hidden_edges[edge_id]
         else:
-            raise NonexistentVertexError(vx_id, "get")
+            raise NonexistentVertexError(vxid, "get")
 
     def get_edges(self, vertices):
 
         edges = set()
-        for vx_id in vertices:
-            vertex = self.get_vertex(vx_id)
+        for vxid in vertices:
+            vertex = self.get_vertex(vxid)
             for edge_id in vertex.out_edges:
                 edge = self.get_edge(edge_id)
                 if edge.target in vertices:
                     edges.add(edge_id)
         return edges
 
-    def filter_edges(self, vx_id, vertices):
+    def filter_edges(self, vxid, vertices):
 
         edges = set()
-        vertex = self.get_vertex(vx_id)
+        vertex = self.get_vertex(vxid)
         for edge_id in vertex.edges:
             edge = self.get_edges(edge_id)
             if edge.source in vertices or edge.target in vertices:

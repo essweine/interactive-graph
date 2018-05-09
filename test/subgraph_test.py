@@ -38,14 +38,13 @@ class TestExpandableSubgraph(unittest.TestCase):
         self.sg2_vertices = set(range(5, 8))
         self.sg3_vertices = set(range(8, 10))
 
-        self.sg1_collapsed_props = { "radius": 0.1 }
-        self.sg1_expanded_props = { "color": (0.0, 0.0, 0.0) }
+        self.collapsed_props = { "radius": 0.1 }
+        self.expanded_props = { "color": (0.0, 0.0, 0.0) }
 
     def test_expanded_subgraphs(self):
 
-        sg1 = self.sg.add(self.sg1_root, self.sg1_vertices, 
-                          self.sg1_expanded_props, self.sg1_collapsed_props, "expanded")
-        sg2 = self.sg.add(self.sg2_root, self.sg2_vertices, state = "expanded")
+        sg1 = self.sg.add(self.sg1_root, self.sg1_vertices, self.expanded_props, self.collapsed_props, "expanded")
+        sg2 = self.sg.add(self.sg2_root, self.sg2_vertices, self.expanded_props, self.collapsed_props, "expanded")
 
         self.assertItemsEqual(sg1, [ ], "create subgraph 1 returned with errors")
         self.assertItemsEqual(sg2, [ ], "create subgraph 2 returned with errors")
@@ -70,9 +69,8 @@ class TestExpandableSubgraph(unittest.TestCase):
 
     def test_collapsed_subgraphs(self):
 
-        sg1 = self.sg.add(self.sg1_root, self.sg1_vertices, 
-                          self.sg1_expanded_props, self.sg1_collapsed_props, "collapsed")
-        sg2 = self.sg.add(self.sg2_root, self.sg2_vertices, state = "collapsed")
+        sg1 = self.sg.add(self.sg1_root, self.sg1_vertices, self.expanded_props, self.collapsed_props, "collapsed")
+        sg2 = self.sg.add(self.sg2_root, self.sg2_vertices, self.expanded_props, self.collapsed_props, "collapsed")
 
         self.assertItemsEqual(sg1, [ ], "create subgraph 1 returned with errors")
         self.assertItemsEqual(sg2, [ ], "create subgraph 2 returned with errors")
@@ -96,10 +94,9 @@ class TestExpandableSubgraph(unittest.TestCase):
 
     def test_nested_subgraphs(self):
 
-        sg1 = self.sg.add(self.sg1_root, self.sg1_vertices, 
-                          self.sg1_expanded_props, self.sg1_collapsed_props, "collapsed")
-        sg3 = self.sg.add(self.sg3_root, self.sg3_vertices, state = "collapsed")
-        sg2 = self.sg.add(self.sg2_root, self.sg2_vertices, state = "collapsed")
+        sg1 = self.sg.add(self.sg1_root, self.sg1_vertices, self.expanded_props, self.collapsed_props, "collapsed")
+        sg3 = self.sg.add(self.sg3_root, self.sg3_vertices, self.expanded_props, self.collapsed_props, "collapsed")
+        sg2 = self.sg.add(self.sg2_root, self.sg2_vertices, self.expanded_props, self.collapsed_props, "collapsed")
 
         self.assertItemsEqual(sg1, [ ], "create subgraph 1 returned with errors")
         self.assertItemsEqual(sg2, [ ], "create subgraph 2 returned with errors")

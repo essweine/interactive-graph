@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.artist as mplartist
 from copy import deepcopy
 
 class Vertex(object):
@@ -6,16 +7,14 @@ class Vertex(object):
     _lock = None
     annotation_props = dict(boxstyle = "square", fc = (0.2, 0.2, 0.2, 0.6), ec = (0.2, 0.2, 0.2, 0.8))
 
-    def __init__(self, vertex_id, graph, xy, label = "", **props):
+    def __init__(self, vertex_id, graph, circle, label = ""):
 
         self._vertex_id = vertex_id
-        self._default_props = props
+        self._default_props = circle.properties()
         self._graph = graph
-        self._circle = plt.Circle(xy, **props)
-        self._graph.ax.add_artist(self._circle)
-        self._connect()
+        self._circle = circle
 
-        x, y = xy
+        x, y = self._circle.center
         self._annotation = self._circle.axes.text(x, y, label, bbox = Vertex.annotation_props, visible = False)
 
         self._vertices = set()
@@ -42,26 +41,19 @@ class Vertex(object):
         self._annotation.remove()
         self._circle.remove()
 
-    def update_circle(self, **props):
+    def update_circle_props(self, **props):
 
-        self._disconnect()
-        self._circle.remove()
-
-        new_props = deepcopy(self._default_props)
-        new_props.update(props)
-        new = plt.Circle(self._circle.center, **new_props)
-        self._circle = new
-
-        ax = self._graph.ax
-        new.set_figure(ax.figure)
-        ax.add_artist(new)
-        new.figure.canvas.draw_idle()
-
+        mplartist.setp(self._circle, **props)
         for edge in (self.in_edges | self.out_edges) & self._graph.visible_edges:
             artist = self._graph.get_edge(edge)
             artist.update()
 
-        self._connect()
+    def restore_circle_props(self):
+
+        mplartist.setp(self._circle, **self.default_props)
+        for edge in (self.in_edges | self.out_edges) & self._graph.visible_edges:
+            artist = self._graph.get_edge(edge)
+            artist.update()
 
     def _on_press(self, event):
 

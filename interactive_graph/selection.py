@@ -6,31 +6,28 @@ class Selection(object):
         self._selected = set()
         self._selected_props = props
 
-    def select_or_deselect(self, vx_id):
+    def select_or_deselect(self, vxid):
 
-        vertex = self._graph.get_vertex(vx_id)
-        if vx_id in self._selected:
-            self._selected.remove(vx_id)
-            vertex.update_circle()
+        if vxid in self._selected:
+            self._selected.remove(vxid)
+            self._graph.restore_vertex_props(vxid)
         else:
-            self._selected.add(vx_id)
-            vertex.update_circle(**self._selected_props)
+            self._selected.add(vxid)
+            self._graph.update_vertex_props(**self._selected_props)
 
-    def hide_selection(self, vx_id):
+    def hide_selection(self, vxid):
 
-        if vx_id in self._selected:
+        if vxid in self._selected:
             self._graph.hide_vertices(self._selected & self._graph.visible_vertices)
 
-    def hide_complement(self, vx_id):
+    def hide_complement(self, vxid):
 
-        if vx_id in self._selected:
+        if vxid in self._selected:
             self._graph.hide_vertices(self._graph.visible_vertices - self._selected)
 
     def deselect_all(self):
 
-        for vx_id in self._selected:
-            vertex = self._graph.get_vertex(vx_id)
-            vertex.update_circle()
+        self._graph.restore_vertices_props(self._selected)
         self._selected.clear()
 
     def get_selection(self):
