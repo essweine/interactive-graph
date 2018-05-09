@@ -5,6 +5,7 @@ class Selection(object):
         self._graph = graph
         self._selected = set()
         self._selected_props = props
+        self._complement = set()      # Only needed for restoring state after hiding complement
 
     def select_or_deselect(self, vxid):
 
@@ -19,14 +20,25 @@ class Selection(object):
 
         self._graph.hide_vertices(self._selected & self._graph.visible_vertices)
 
+    def restore_selection(self):
+
+        self._graph.restore_vertices(self._selected & self._graph.hidden_vertices)
+
     def hide_complement(self):
 
+        self._complement = self._graph.visible_vertices - self._selected
         self._graph.hide_vertices(self._graph.visible_vertices - self._selected)
+
+    def restore_complement(self):
+
+        self._graph.restore_vertices(self._complement & self._graph.hidden_vertices)
+        self._complement.clear()
 
     def deselect_all(self):
 
         self._graph.restore_vertices_props(self._selected)
         self._selected.clear()
+        self._complement.clear()
 
     def get_selection(self):
 

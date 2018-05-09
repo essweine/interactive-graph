@@ -47,21 +47,29 @@ class TestSelection(unittest.TestCase):
         self.assertEqual(circle.get_radius(), self.vprops["radius"], "deselected vertex radius was not updated")
         self.assertItemsEqual(self.selection.get_selection(), [ 1, 2 ], "current selection is incorrect")
 
-    def test_hide_selection(self):
+    def test_hide_and_restore_selection(self):
 
         self.ig.do_press_action(0)
         self.ig.do_press_action(1)
         self.ig.do_press_action(2)
         self.selection.hide_selection()
         self.assertItemsEqual(self.ig.hidden_vertices, [ 0, 1, 2 ], "selection is not hidden")
+        self.selection.restore_selection()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ ], "vertices are hidden after restore")
 
-    def test_hide_complement(self):
+    def test_hide_and_restore_complement(self):
 
         self.ig.do_press_action(0)
         self.ig.do_press_action(1)
         self.ig.do_press_action(2)
         self.selection.hide_complement()
         self.assertItemsEqual(self.ig.hidden_vertices, [ 3, 4, 5 ], "selection complement is not hidden")
+        self.selection.restore_complement()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ ], "vertices are hidden after restore")
+        self.ig.hide_vertex(5)
+        self.selection.hide_complement()
+        self.selection.restore_complement()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ 5 ], "previously hidden vertex is visible after restore complement")
 
     def test_deselect_all(self):
 
@@ -69,6 +77,6 @@ class TestSelection(unittest.TestCase):
         self.ig.do_press_action(1)
         self.ig.do_press_action(2)
         self.selection.deselect_all()
-        self.assertItemsEqual(self.selection.get_selection(), set(), "selection contains vertices")
+        self.assertItemsEqual(self.selection.get_selection(), [ ], "selection contains vertices")
         self.assertItemsEqual(self.ig.visible_vertices, [ 0, 1, 2, 3, 4, 5 ], "vertices are hidden")
 
