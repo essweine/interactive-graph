@@ -7,10 +7,13 @@ class Vertex(object):
     _lock = None
     annotation_props = dict(boxstyle = "square", fc = (0.2, 0.2, 0.2, 0.6), ec = (0.2, 0.2, 0.2, 0.8))
 
-    def __init__(self, vertex_id, graph, circle, label = ""):
+    def __init__(self, vertex_id, graph, circle, label = "", props = { }):
 
         self._vertex_id = vertex_id
-        self._default_props = circle.properties()
+        if props:
+            self._default_props = props
+        else:
+            self._default_props = circle.properties()
         self._graph = graph
         self._circle = circle
 

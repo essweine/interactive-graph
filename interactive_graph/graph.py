@@ -49,7 +49,7 @@ class InteractiveGraph(object):
 
         circle = plt.Circle(xy, **props)
         self.ax.add_patch(circle)
-        vx = Vertex(vxid, self, circle, label)
+        vx = Vertex(vxid, self, circle, label, props)
         vx._connect()
         self._visible_vertices[vxid] = vx
 
@@ -257,11 +257,11 @@ class InteractiveGraph(object):
 
     @redraw
     def update_vertices_props(self, vertices, **props):
-        return filter(lambda v: v is not None, [ self.update_vertex_props(*vx, **props) for vx in vertices ])
+        return filter(lambda v: v is not None, [ self.update_vertex_props(vx, redraw = False, **props) for vx in vertices ])
 
     @redraw
     def restore_vertices_props(self, vertices):
-        return filter(lambda v: v is not None, [ self.update_vertex_props(*vx) for vx in vertices ])
+        return filter(lambda v: v is not None, [ self.restore_vertex_props(vx, redraw = False) for vx in vertices ])
 
     @redraw
     def add_edges(self, edges, redraw = False, **props):

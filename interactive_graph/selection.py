@@ -13,17 +13,15 @@ class Selection(object):
             self._graph.restore_vertex_props(vxid)
         else:
             self._selected.add(vxid)
-            self._graph.update_vertex_props(**self._selected_props)
+            self._graph.update_vertex_props(vxid, **self._selected_props)
 
-    def hide_selection(self, vxid):
+    def hide_selection(self):
 
-        if vxid in self._selected:
-            self._graph.hide_vertices(self._selected & self._graph.visible_vertices)
+        self._graph.hide_vertices(self._selected & self._graph.visible_vertices)
 
-    def hide_complement(self, vxid):
+    def hide_complement(self):
 
-        if vxid in self._selected:
-            self._graph.hide_vertices(self._graph.visible_vertices - self._selected)
+        self._graph.hide_vertices(self._graph.visible_vertices - self._selected)
 
     def deselect_all(self):
 
