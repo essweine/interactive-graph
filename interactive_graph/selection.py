@@ -1,3 +1,5 @@
+from exceptions import NonexistentVertexError
+
 class Selection(object):
 
     def __init__(self, graph, props = { }):
@@ -40,6 +42,23 @@ class Selection(object):
         self._selected.clear()
         self._complement.clear()
 
+    def add_vertices(self, vertices):
+
+        self._selected |= vertices
+        self._complement.clear()
+        if self.selected_props:
+            self._graph.update_vertices_props(vertices, **self.selected_props)
+
+    def remove_vertices(self, vertices):
+
+        self._selected -= vertices
+        self._complement.clear()
+        self._graph.restore_vertices_props(vertices)
+
     def get_selection(self):
 
         return self._selected
+
+    @property
+    def selected_props(self):
+        return self._selected_props
