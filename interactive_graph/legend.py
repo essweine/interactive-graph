@@ -53,6 +53,10 @@ class InteractiveLegend(object):
 
         self._selection.remove_vertices(vertices)
 
+    @property
+    def ax(self):
+        return self._ax
+
 class VertexGroup(object):
 
     def __init__(self, legend, label, vertices, default_props, selected_props):

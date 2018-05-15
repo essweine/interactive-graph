@@ -1,5 +1,8 @@
 from exceptions import NonexistentVertexError
 
+import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
+
 class Selection(object):
 
     def __init__(self, graph, props = { }):
@@ -62,3 +65,29 @@ class Selection(object):
     @property
     def selected_props(self):
         return self._selected_props
+
+class SelectionOptions(object):
+
+    def __init__(self, selection, font_size = 10, pad = 6):
+
+        self._selection = selection
+        self._ax = Axes(selection._graph.ax.get_figure(), selection._graph.ax.get_position(original = True))
+
+        button_sz = 1.0 / (self._ax.figure.get_dpi() / (font_size + pad))
+        pad_sz = 0.02
+        labels = [ "deselect all", "toggle complement", "toggle selection" ]
+        props = { "fc": (0.95, 0.95, 0.95), "ec": (0.1, 0.1, 0.1) }
+        buttons = [ plt.Rectangle((0.0, i * (button_sz + pad_sz)), 1.0, button_sz, **props) for i in range(3) ]
+        text_offsets = [ i * (button_sz + pad_sz) + (0.5 * button_sz) for i in range(3) ]
+        for button, offset, label in zip(buttons, text_offsets, labels):
+            self._ax.add_patch(button)
+            self._ax.text(0.5, offset, label, size = font_size, ha = "center", va = "center")
+
+        self._ax.tick_params(left = False, labelleft = False, bottom = False, labelbottom = False)
+        self._ax.set_frame_on(False)
+        self._ax.set_anchor("NW")
+        self._ax.set_ylim(0, 3 * button_sz + 2 * pad_sz)
+
+    @property
+    def ax(self):
+        return self._ax

@@ -5,12 +5,13 @@ from math import ceil
 
 class GraphContainer(object):
 
-    def __init__(self, ax, graph, legend):
+    def __init__(self, ax, graph, legend, select_opts):
 
         self._ax = ax
 
         self._graph = graph
         self._legend = legend
+        self._select_opts = select_opts
 
         pad = Size.Fixed(0.1)
         graph_width = Size.AxesX(graph.ax)
@@ -21,11 +22,11 @@ class GraphContainer(object):
         divider = make_axes_locatable(ax)
         divider.set_horizontal([ graph_width, pad, self.menu_width ])
 
-        leg_span = self._get_span(legend._ax)
+        leg_span = self._get_span(legend.ax)
         leg_top, leg_bottom = self.n_rows, self.n_rows - leg_span
         menu_layout = [ self.cell_height ] * leg_span + [ pad ]
 
-        sel_opts_span = 1
+        sel_opts_span = self._get_span(select_opts.ax)
         sel_opts_top, sel_opts_bottom = leg_bottom - 1, leg_bottom - sel_opts_span - 1
         menu_layout += [ self.cell_height ] * sel_opts_span + [ pad ]
 
@@ -38,12 +39,11 @@ class GraphContainer(object):
         graph.ax.set_axes_locator(divider.new_locator(nx = 0, ny = 0, ny1 = -1))
         ax.figure.add_axes(graph.ax)
 
-        legend._ax.set_axes_locator(divider.new_locator(nx = 2, ny = leg_bottom, ny1 = leg_top))
-        ax.figure.add_axes(legend._ax)
+        legend.ax.set_axes_locator(divider.new_locator(nx = 2, ny = leg_bottom, ny1 = leg_top))
+        ax.figure.add_axes(legend.ax)
 
-        self.sel_opts = Axes(ax.get_figure(), ax.get_position(original = True))
-        self.sel_opts.set_axes_locator(divider.new_locator(nx = 2, ny = sel_opts_bottom, ny1 = sel_opts_top))
-        ax.figure.add_axes(self.sel_opts)
+        select_opts.ax.set_axes_locator(divider.new_locator(nx = 2, ny = sel_opts_bottom, ny1 = sel_opts_top))
+        ax.figure.add_axes(select_opts.ax)
 
         ax.set_axes_locator(divider.new_locator(nx = 2, ny = 0, ny1 = sel_opts_bottom - 1))
 
