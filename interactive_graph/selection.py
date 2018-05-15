@@ -68,26 +68,95 @@ class Selection(object):
 
 class SelectionOptions(object):
 
-    def __init__(self, selection, font_size = 10, pad = 6):
+    def __init__(self, selection, font_sz = 10, pad = 6, legend = None):
 
         self._selection = selection
+        self._legend = legend
         self._ax = Axes(selection._graph.ax.get_figure(), selection._graph.ax.get_position(original = True))
 
-        button_sz = 1.0 / (self._ax.figure.get_dpi() / (font_size + pad))
+        button_sz = 1.0 / (self._ax.figure.get_dpi() / (font_sz + pad))
         pad_sz = 0.02
-        labels = [ "deselect all", "toggle complement", "toggle selection" ]
-        props = { "fc": (0.95, 0.95, 0.95), "ec": (0.1, 0.1, 0.1) }
-        buttons = [ plt.Rectangle((0.0, i * (button_sz + pad_sz)), 1.0, button_sz, **props) for i in range(3) ]
-        text_offsets = [ i * (button_sz + pad_sz) + (0.5 * button_sz) for i in range(3) ]
-        for button, offset, label in zip(buttons, text_offsets, labels):
-            self._ax.add_patch(button)
-            self._ax.text(0.5, offset, label, size = font_size, ha = "center", va = "center")
+        locations = [ (0.0, i * (button_sz + pad_sz)) for i in range(3) ]
+
+        self.actions = {
+            "selection": Option("selection", self._toggle_selection, self._ax, locations[2], 1.0, button_sz, font_sz),
+            "complement": Option("complement", self._toggle_complement, self._ax, locations[1], 1.0, button_sz, font_sz),
+            "deselect": Option("deselect all", self._deselect_all, self._ax, locations[0], 1.0, button_sz, font_sz, None),
+        }
 
         self._ax.tick_params(left = False, labelleft = False, bottom = False, labelbottom = False)
         self._ax.set_frame_on(False)
         self._ax.set_anchor("NW")
         self._ax.set_ylim(0, 3 * button_sz + 2 * pad_sz)
 
+    def _toggle_selection(self, visible):
+
+        if visible:
+            self._selection.hide_selection()
+        else:
+            self._selection.restore_selection()
+
+    def _toggle_complement(self, visible):
+
+        if visible:
+            self._selection.hide_complement()
+        else:
+            self._selection.restore_complement()
+
+    def _deselect_all(self):
+
+        self._selection.deselect_all()
+        self._legend.reset()
+
     @property
     def ax(self):
         return self._ax
+
+class Option(object):
+
+    unclicked_props = { "fc": (0.95, 0.95, 0.95), "ec": (0.1, 0.1, 0.1) }
+    clicked_props = { "fc": (0.90, 0.90, 0.90), "ec": (0.1, 0.1, 0.1) }
+
+    def __init__(self, label, action, ax, loc, width, height, font_sz, toggle = True):
+
+        self.toggle = toggle    # True when items visible; False when items hidden; None if not a toggle
+        self.label = label
+        self.action = action
+
+        self.button = plt.Rectangle(loc, width, height, **Option.unclicked_props)
+        ax.add_patch(self.button)
+        x, y = loc[0] + width / 2.0, loc[1] + height / 2.0
+        if toggle is True:
+            self.text = ax.text(x, y, "hide %s" % label, size = font_sz, ha = "center", va = "center")
+        else:
+            self.text = ax.text(x, y, "%s" % label, size = font_sz, ha = "center", va = "center")
+        self._connect()
+
+    def _on_press(self, event):
+
+        if event.inaxes != self.button.axes:
+            return
+        contains, attrd = self.button.contains(event)
+        if not contains:
+            return
+
+        if self.toggle is None:
+            self.action()
+        elif self.toggle is True:
+            self.button.set(**Option.clicked_props)
+            self.text.set_text("restore %s" % self.label)
+            self.action(self.toggle)
+            self.toggle = False
+        else:
+            self.button.set(**Option.unclicked_props)
+            self.text.set_text("hide %s" % self.label)
+            self.action(self.toggle)
+            self.toggle = True
+
+    def _connect(self):
+
+        self._cidpress = self.button.figure.canvas.mpl_connect("button_press_event", self._on_press)
+
+    def _disconnect(self):
+
+        self.button.figure.canvas.mpl_disconnect(self._cidpress)

@@ -12,7 +12,6 @@ class InteractiveLegend(object):
         self._selection = selection
         self._groups = [ ]
         self._ax = Axes(self._graph.ax.get_figure(), self._graph.ax.get_position(original = True))
-        self._background = None
 
         # TODO: accept groups as part of constructor?
 
@@ -53,6 +52,12 @@ class InteractiveLegend(object):
 
         self._selection.remove_vertices(vertices)
 
+    def reset(self):
+
+        for group in self._groups:
+            if group.selected:
+                group.reset_props()
+
     @property
     def ax(self):
         return self._ax
@@ -76,6 +81,10 @@ class VertexGroup(object):
         return self._label
 
     @property
+    def selected(self):
+        return self._selected
+
+    @property
     def default_patch_props(self):
         props = deepcopy(self.default_vertex_props)
         props["radius"] = self._radius
@@ -94,6 +103,12 @@ class VertexGroup(object):
     @property
     def selected_vertex_props(self):
         return self._selected_props
+
+    def reset_props(self):
+
+        mplartist.setp(self._patch, **self.default_patch_props)
+        self._patch.figure.canvas.draw()
+        self._selected = False
 
     def _on_press(self, event):
 
