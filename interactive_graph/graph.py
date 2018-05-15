@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 
 from vertex import Vertex
 from edge import Edge
@@ -9,8 +10,9 @@ class InteractiveGraph(object):
 
     def __init__(self, ax):
 
-        self.ax = ax
+        self.ax = Axes(ax.get_figure(), ax.get_position(original = True))
         self.ax.set_aspect("equal")
+        self.ax.set_anchor("NE")
 
         self._visible_vertices, self._visible_edges = { }, { }
         self._hidden_vertices, self._hidden_edges = { }, { }
