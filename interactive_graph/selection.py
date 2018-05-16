@@ -76,25 +76,19 @@ class SelectionOptions(object):
 
         button_sz = 1.0 / (self._ax.figure.get_dpi() / (font_sz + pad))
         pad_sz = 0.02
-        locations = [ (0.0, i * (button_sz + pad_sz)) for i in range(3) ]
+        rows = [ i * (button_sz + pad_sz) for i in range(3) ]
 
         self.actions = {
-            "selection": Option("selection", self._toggle_selection, self._ax, locations[2], 1.0, button_sz, font_sz),
-            "complement": Option("complement", self._toggle_complement, self._ax, locations[1], 1.0, button_sz, font_sz),
-            "deselect": Option("deselect all", self._deselect_all, self._ax, locations[0], 1.0, button_sz, font_sz, None),
+            "hide": Option("hide selection", self._hide_selection, self._ax, (0.0, rows[2]), 0.49, button_sz, font_sz, None),
+            "restore": Option("restore selection", self._restore_selection, self._ax, (0.51, rows[2]), 0.49, button_sz, font_sz, None),
+            "complement": Option("complement", self._toggle_complement, self._ax, (0.0, rows[1]), 1.0, button_sz, font_sz),
+            "deselect": Option("deselect all", self._deselect_all, self._ax, (0.0, rows[0]), 1.0, button_sz, font_sz, None),
         }
 
         self._ax.tick_params(left = False, labelleft = False, bottom = False, labelbottom = False)
         self._ax.set_frame_on(False)
         self._ax.set_anchor("NW")
         self._ax.set_ylim(0, 3 * button_sz + 2 * pad_sz)
-
-    def _toggle_selection(self, visible):
-
-        if visible:
-            self._selection.hide_selection()
-        else:
-            self._selection.restore_selection()
 
     def _toggle_complement(self, visible):
 
@@ -103,10 +97,23 @@ class SelectionOptions(object):
         else:
             self._selection.restore_complement()
 
+    def _hide_selection(self):
+
+        if self._legend is not None:
+            self._legend.update("hide")
+        self._selection.hide_selection()
+
+    def _restore_selection(self):
+
+        if self._legend is not None:
+            self._legend.update("restore")
+        self._selection.restore_selection()
+
     def _deselect_all(self):
 
+        if self._legend is not None:
+            self._legend.update("deselect")
         self._selection.deselect_all()
-        self._legend.reset()
 
     @property
     def ax(self):

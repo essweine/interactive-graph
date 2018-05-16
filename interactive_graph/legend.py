@@ -1,5 +1,4 @@
 from math import ceil
-from copy import deepcopy
 import matplotlib.pyplot as plt
 import matplotlib.artist as mplartist
 from matplotlib.axes import Axes
@@ -33,30 +32,28 @@ class InteractiveLegend(object):
             row, col = idx % n_rows, idx // n_rows
             offset_y = 1.0 - (row_sz * row + row_sz / 2.0)
             offset_x = (1.0 / n_cols) * col
-            group._radius = radius
-            group._patch = plt.Circle((offset_x + row_sz / 2.0, offset_y), **group.default_patch_props)
-            self._ax.add_patch(group._patch)
-            self._ax.text(offset_x + row_sz * 1.2, offset_y, group.label, va = "center", ha = "left", size = font_size)
-            group._connect()
+            group.build(self._ax, offset_x + row_sz / 2.0, offset_x + row_sz * 1.2, offset_y, radius, font_size)
 
         self._ax.tick_params(left = False, bottom = False, labelleft = False, labelbottom = False)
         self._ax.set_ylim(1.0 - row_sz * n_rows)
         self._ax.set_aspect("equal")
         self._ax.set_anchor("NW")
+        self._ax.figure.canvas.toolbar.update()
 
-    def _select(self, vertices):
-
-        self._selection.add_vertices(vertices)
-
-    def _deselect(self, vertices):
-
-        self._selection.remove_vertices(vertices)
-
-    def reset(self):
+    def update(self, action):
 
         for group in self._groups:
-            if group.selected:
-                group.reset_props()
+            if action == "hide":
+                if group.selected:
+                    group.mark_hidden()
+            elif action == "restore":
+                if group.selected:
+                    group.mark_visible()
+            elif action == "deselect":
+                if group.selected:
+                    group.mark_unselected()
+
+        self.ax.figure.canvas.draw()
 
     @property
     def ax(self):
@@ -72,9 +69,20 @@ class VertexGroup(object):
         self._default_props = default_props
         self._selected_props = selected_props
 
-        self._radius = 0.1
-        self._patch = None
         self._selected = False
+        self._visible = True
+
+        self._patch = None
+        self._text = None
+
+    def build(self, ax, circle_x, text_x, y, radius, font_size):
+
+        self._default_props["radius"] = radius
+        self._selected_props["radius"] = radius
+        self._patch = plt.Circle((circle_x, y), **self.default_props)
+        ax.add_patch(self._patch)
+        self._text = ax.text(text_x, y, self.label, va = "center", ha = "left", size = font_size)
+        self._connect()
 
     @property
     def label(self):
@@ -85,50 +93,53 @@ class VertexGroup(object):
         return self._selected
 
     @property
-    def default_patch_props(self):
-        props = deepcopy(self.default_vertex_props)
-        props["radius"] = self._radius
-        return props
+    def visible(self):
+        return self._visible
 
     @property
-    def selected_patch_props(self):
-        props = deepcopy(self.selected_vertex_props)
-        props["radius"] = self._radius
-        return props
-
-    @property
-    def default_vertex_props(self):
+    def default_props(self):
         return self._default_props
 
     @property
-    def selected_vertex_props(self):
+    def selected_props(self):
         return self._selected_props
 
-    def reset_props(self):
+    def mark_selected(self):
 
-        mplartist.setp(self._patch, **self.default_patch_props)
-        self._patch.figure.canvas.draw()
+        mplartist.setp(self._patch, **self.selected_props)
+        self._selected = True
+
+    def mark_unselected(self):
+
+        mplartist.setp(self._patch, **self.default_props)
         self._selected = False
+
+    def mark_visible(self):
+
+        self._text.set_color((0.0, 0.0, 0.0))
+        self._visible = True
+
+    def mark_hidden(self):
+
+        self._text.set_color((0.4, 0.4, 0.4))
+        self._visible = False
 
     def _on_press(self, event):
 
         if event.inaxes != self._patch.axes:
             return
-
         contains, attrd = self._patch.contains(event)
         if not contains:
             return
 
         if self._selected:
-            self._legend._deselect(self._vertices)
-            mplartist.setp(self._patch, **self.default_patch_props)
-            self._patch.figure.canvas.draw()
-            self._selected = False
+            self._legend._selection.remove_vertices(self._vertices)
+            self.mark_unselected()
         else:
-            self._legend._select(self._vertices)
-            mplartist.setp(self._patch, **self.selected_patch_props)
-            self._patch.figure.canvas.draw()
-            self._selected = True
+            self._legend._selection.add_vertices(self._vertices)
+            self.mark_selected()
+
+        self._legend.ax.figure.canvas.draw()
 
     def _connect(self):
 

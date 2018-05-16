@@ -46,6 +46,7 @@ class GraphContainer(object):
         ax.figure.add_axes(select_opts.ax)
 
         ax.set_axes_locator(divider.new_locator(nx = 2, ny = 0, ny1 = sel_opts_bottom - 1))
+        ax.tick_params(left = False, labelleft = False, bottom = False, labelbottom = False)
 
     def _get_span(self, ax):
 
