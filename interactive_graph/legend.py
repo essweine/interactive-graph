@@ -52,6 +52,8 @@ class InteractiveLegend(object):
             elif action == "deselect":
                 if group.selected:
                     group.mark_unselected()
+            elif action == "reset":
+                group.mark_visible()
 
         self.ax.figure.canvas.draw()
 
