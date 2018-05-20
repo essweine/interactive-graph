@@ -5,19 +5,20 @@ from math import ceil
 
 class GraphContainer(object):
 
-    def __init__(self, ax, graph, legend, select_opts):
+    def __init__(self, ax, graph, legend, select_opts, vertex_opts):
 
         self._ax = ax
 
         self._graph = graph
         self._legend = legend
         self._select_opts = select_opts
+        self._vertex_opts = vertex_opts
 
         pad = Size.Fixed(0.1)
         graph_width = Size.AxesX(graph.ax)
         self.menu_width = Size.Fraction(0.35, Size.AxesX(graph.ax))
-        self.n_rows = 12
-        self.cell_height = Size.Fraction(0.98 / 10.0, Size.AxesY(graph.ax))
+        self.n_rows = 13
+        self.cell_height = Size.Fraction(0.97 / 10.0, Size.AxesY(graph.ax))
 
         divider = make_axes_locatable(ax)
         divider.set_horizontal([ graph_width, pad, self.menu_width ])
@@ -30,8 +31,12 @@ class GraphContainer(object):
         sel_opts_top, sel_opts_bottom = leg_bottom - 1, leg_bottom - sel_opts_span - 1
         menu_layout += [ self.cell_height ] * sel_opts_span + [ pad ]
 
+        vx_opts_span = self._get_span(vertex_opts.ax)
+        vx_opts_top, vx_opts_bottom = sel_opts_bottom - 1, sel_opts_bottom - vx_opts_span - 1
+        menu_layout += [ self.cell_height ] * vx_opts_span + [ pad ]
+
         # Placeholder for unimplemented menu items
-        menu_layout += [ self.cell_height ] * (sel_opts_bottom - 1)
+        menu_layout += [ self.cell_height ] * (vx_opts_bottom - 1)
 
         divider.set_vertical([ c for c in reversed(menu_layout) ])
         self.divider = divider
@@ -45,7 +50,10 @@ class GraphContainer(object):
         select_opts.ax.set_axes_locator(divider.new_locator(nx = 2, ny = sel_opts_bottom, ny1 = sel_opts_top))
         ax.figure.add_axes(select_opts.ax)
 
-        ax.set_axes_locator(divider.new_locator(nx = 2, ny = 0, ny1 = sel_opts_bottom - 1))
+        vertex_opts.ax.set_axes_locator(divider.new_locator(nx = 2, ny = vx_opts_bottom, ny1 = vx_opts_top))
+        ax.figure.add_axes(vertex_opts.ax)
+
+        ax.set_axes_locator(divider.new_locator(nx = 2, ny = 0, ny1 = vx_opts_bottom - 1))
         ax.tick_params(left = False, labelleft = False, bottom = False, labelbottom = False)
 
     def _get_span(self, ax):

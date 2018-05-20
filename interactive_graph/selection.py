@@ -51,6 +51,14 @@ class Selection(object):
 
         self._graph.restore_vertices(self._out_neighbors & self._graph.hidden_vertices)
 
+    def remove_selection(self):
+
+        self._graph.remove_vertices(self._selected)
+        self._selected.clear()
+        self._in_neighbors.clear()
+        self._out_neighbors.clear()
+        self._complement.clear()
+
     def deselect_all(self):
 
         self._graph.restore_vertices_props(self._selected)

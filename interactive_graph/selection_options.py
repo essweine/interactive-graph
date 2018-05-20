@@ -12,15 +12,16 @@ class SelectionOptions(object):
         self._ax = Axes(selection._graph.ax.get_figure(), selection._graph.ax.get_position(original = True))
 
         button_sz = 1.0 / (self._ax.figure.get_dpi() / (font_sz + pad))
-        n_rows, pad_sz = 4, 0.02
+        n_rows, pad_sz = 5, 0.02
         rows = [ i * (button_sz + pad_sz) for i in range(n_rows) ]
 
         self._actions = {
-            "hide": Option(self._ax, (0.0, rows[3]), 0.49, button_sz, font_sz, "hide selection", self._hide_selection),
-            "restore": Option(self._ax, (0.51, rows[3]), 0.49, button_sz, font_sz, "restore selection", self._restore_selection),
-            "in": Toggle(self._ax, (0.0, rows[2]), 0.49, button_sz, font_sz, self._toggle_in_neighbors, "hide in neighbors", "restore in neighbors"),
-            "out": Toggle(self._ax, (0.51, rows[2]), 0.49, button_sz, font_sz, self._toggle_out_neighbors, "hide out neighbors", "restore out neighbors"),
-            "complement": Toggle(self._ax, (0.0, rows[1]), 1.0, button_sz, font_sz, self._toggle_complement, "hide others", "restore others"),
+            "hide": Option(self._ax, (0.0, rows[4]), 0.49, button_sz, font_sz, "hide selection", self._hide_selection),
+            "restore": Option(self._ax, (0.51, rows[4]), 0.49, button_sz, font_sz, "restore selection", self._restore_selection),
+            "in": Toggle(self._ax, (0.0, rows[3]), 0.49, button_sz, font_sz, self._toggle_in_neighbors, "hide in neighbors", "restore in neighbors"),
+            "out": Toggle(self._ax, (0.51, rows[3]), 0.49, button_sz, font_sz, self._toggle_out_neighbors, "hide out neighbors", "restore out neighbors"),
+            "complement": Toggle(self._ax, (0.0, rows[2]), 1.0, button_sz, font_sz, self._toggle_complement, "hide others", "restore others"),
+            "remove": Option(self._ax, (0.0, rows[1]), 1.0, button_sz, font_sz, "remove selection", self._remove_selection),
             "deselect": Option(self._ax, (0.0, rows[0]), 1.0, button_sz, font_sz, "deselect all", self._deselect_all),
         }
 
@@ -65,6 +66,12 @@ class SelectionOptions(object):
         if self._legend is not None:
             self._legend.update("restore")
         self._selection.restore_selection()
+
+    def _remove_selection(self):
+
+        self._selection.remove_selection()
+        if self._legend is not None:
+            self._legend.update("remove")
 
     def _deselect_all(self):
 

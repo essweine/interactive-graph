@@ -20,8 +20,6 @@ class InteractiveGraph(object):
         self._press_action = "move"
         self._press_actions = {
             "move": None,
-            "hide": self.hide_vertex,
-            "remove": self.remove_vertex,
         }
 
     @property

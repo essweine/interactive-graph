@@ -54,6 +54,8 @@ class InteractiveLegend(object):
                     group.mark_unselected()
             elif action == "reset":
                 group.mark_visible()
+            elif action == "remove":
+                group._vertices &= self._graph.vertices
 
         self.ax.figure.canvas.draw()
 
@@ -90,6 +92,9 @@ class VertexGroup(object):
     def label(self):
         return self._label
 
+    @property
+    def vertices(self):
+        return self._vertices
     @property
     def selected(self):
         return self._selected
