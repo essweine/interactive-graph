@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
+from container import Toggle, Option
+
 class SelectionOptions(object):
 
     def __init__(self, selection, font_sz = 8, pad = 4, legend = None):
@@ -14,13 +16,12 @@ class SelectionOptions(object):
         rows = [ i * (button_sz + pad_sz) for i in range(n_rows) ]
 
         self._actions = {
-            "hide": Option("hide selection", self._hide_selection, self._ax, (0.0, rows[3]), 0.49, button_sz, font_sz, None),
-            "restore": Option("restore selection", self._restore_selection, self._ax, (0.51, rows[3]), 0.49, button_sz, font_sz, None),
-            "deselect": Option("deselect all", self._deselect_all, self._ax, (0.0, rows[2]), 0.49, button_sz, font_sz, None),
-            "reset": Option("restore all", self._restore_all, self._ax, (0.51, rows[2]), 0.49, button_sz, font_sz, None),
-            "in": Option("in neighbors", self._toggle_in_neighbors, self._ax, (0.0, rows[1]), 0.49, button_sz, font_sz),
-            "out": Option("out neighbors", self._toggle_out_neighbors, self._ax, (0.51, rows[1]), 0.49, button_sz, font_sz),
-            "complement": Option("others", self._toggle_complement, self._ax, (0.0, rows[0]), 1.0, button_sz, font_sz),
+            "hide": Option(self._ax, (0.0, rows[3]), 0.49, button_sz, font_sz, "hide selection", self._hide_selection),
+            "restore": Option(self._ax, (0.51, rows[3]), 0.49, button_sz, font_sz, "restore selection", self._restore_selection),
+            "in": Toggle(self._ax, (0.0, rows[2]), 0.49, button_sz, font_sz, self._toggle_in_neighbors, "hide in neighbors", "restore in neighbors"),
+            "out": Toggle(self._ax, (0.51, rows[2]), 0.49, button_sz, font_sz, self._toggle_out_neighbors, "hide out neighbors", "restore out neighbors"),
+            "complement": Toggle(self._ax, (0.0, rows[1]), 1.0, button_sz, font_sz, self._toggle_complement, "hide others", "restore others"),
+            "deselect": Option(self._ax, (0.0, rows[0]), 1.0, button_sz, font_sz, "deselect all", self._deselect_all),
         }
 
         self._ax.tick_params(left = False, labelleft = False, bottom = False, labelbottom = False)
@@ -28,9 +29,9 @@ class SelectionOptions(object):
         self._ax.set_anchor("NW")
         self._ax.set_ylim(0, n_rows * button_sz + (n_rows - 1) * pad_sz)
 
-    def _toggle_complement(self, visible):
+    def _toggle_complement(self, toggled):
 
-        if visible:
+        if toggled:
             self._selection.hide_complement()
             self._actions["in"]._set_pressed()
             self._actions["out"]._set_pressed()
@@ -39,16 +40,16 @@ class SelectionOptions(object):
             self._actions["in"]._set_unpressed()
             self._actions["out"]._set_unpressed()
 
-    def _toggle_in_neighbors(self, visible):
+    def _toggle_in_neighbors(self, toggled):
 
-        if visible:
+        if toggled:
             self._selection.hide_in_neighbors()
         else:
             self._selection.restore_in_neighbors()
 
-    def _toggle_out_neighbors(self, visible):
+    def _toggle_out_neighbors(self, toggled):
 
-        if visible:
+        if toggled:
             self._selection.hide_out_neighbors()
         else:
             self._selection.restore_out_neighbors()
@@ -84,61 +85,4 @@ class SelectionOptions(object):
     def ax(self):
         return self._ax
 
-class Option(object):
 
-    unclicked_props = { "fc": (0.95, 0.95, 0.95), "ec": (0.1, 0.1, 0.1) }
-    clicked_props = { "fc": (0.85, 0.85, 0.85), "ec": (0.1, 0.1, 0.1) }
-
-    def __init__(self, label, action, ax, loc, width, height, font_sz, toggle = True):
-
-        self.toggle = toggle    # True when items visible; False when items hidden; None if not a toggle
-        self.label = label
-        self.action = action
-
-        self.button = plt.Rectangle(loc, width, height, **Option.unclicked_props)
-        ax.add_patch(self.button)
-        x, y = loc[0] + width / 2.0, loc[1] + height / 2.0
-        if toggle is True:
-            self.text = ax.text(x, y, "hide %s" % label, size = font_sz, ha = "center", va = "center")
-        else:
-            self.text = ax.text(x, y, "%s" % label, size = font_sz, ha = "center", va = "center")
-        self._connect()
-
-    def _set_pressed(self):
-
-        self.button.set(**Option.clicked_props)
-        self.text.set_text("restore %s" % self.label)
-        self.toggle = False
-
-    def _set_unpressed(self):
-
-        self.button.set(**Option.unclicked_props)
-        self.text.set_text("hide %s" % self.label)
-        self.toggle = True
-
-    def _on_press(self, event):
-
-        if event.inaxes != self.button.axes:
-            return
-        contains, attrd = self.button.contains(event)
-        if not contains:
-            return
-
-        if self.toggle is None:
-            self.action()
-        elif self.toggle is True:
-            self.action(self.toggle)
-            self._set_pressed()
-        else:
-            self.action(self.toggle)
-            self._set_unpressed()
-
-        self.button.figure.canvas.draw()
-
-    def _connect(self):
-
-        self._cidpress = self.button.figure.canvas.mpl_connect("button_press_event", self._on_press)
-
-    def _disconnect(self):
-
-        self.button.figure.canvas.mpl_disconnect(self._cidpress)
