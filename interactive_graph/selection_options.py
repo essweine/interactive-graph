@@ -1,15 +1,17 @@
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
-from container import Toggle, Option
+from container_elements import Toggle, Option
+from legend import InteractiveLegend
 
 class SelectionOptions(object):
 
     def __init__(self, selection, font_sz = 8, pad = 4, legend = None):
 
         self._selection = selection
-        self._legend = legend
         self._ax = Axes(selection._graph.ax.get_figure(), selection._graph.ax.get_position(original = True))
+
+        self._legend = legend
 
         button_sz = 1.0 / (self._ax.figure.get_dpi() / (font_sz + pad))
         n_rows, pad_sz = 5, 0.02
@@ -29,6 +31,15 @@ class SelectionOptions(object):
         self._ax.set_frame_on(False)
         self._ax.set_anchor("NW")
         self._ax.set_ylim(0, n_rows * button_sz + (n_rows - 1) * pad_sz)
+
+    def create_legend(self):
+
+        self._legend = InteractiveLegend(self._selection._graph, self._selection)
+        return self._legend
+
+    @property
+    def has_legend(self):
+        return self._legend is not None
 
     def _toggle_complement(self, toggled):
 
