@@ -23,6 +23,7 @@ class Selection(object):
                 self._complement = self._graph.vertices - self._selected
             elif vxid in self._complement:
                 self._complement.remove(vxid)
+        self._update_neighbors()
 
     def hide_selection(self):
 

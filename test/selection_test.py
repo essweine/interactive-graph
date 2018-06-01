@@ -67,6 +67,29 @@ class TestSelection(unittest.TestCase):
         self.selection.restore_complement()
         self.assertItemsEqual(self.ig.hidden_vertices, [ ], "vertices are hidden after restore")
 
+    def test_hide_and_restore_neighbors(self):
+
+        self.ig.do_press_action(1)
+        self.ig.do_press_action(3)
+        self.ig.do_press_action(4)
+        self.selection.hide_in_neighbors()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ 0, 2 ], "selection in neighbors are not hidden")
+        self.selection.restore_in_neighbors()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ ], "in neighbors are hidden after restore")
+        self.selection.hide_out_neighbors()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ 5 ], "selection out neighbors are not hidden")
+        self.selection.restore_out_neighbors()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ ], "out neighbors are hidden after restore")
+        self.selection.hide_complement()
+        self.selection.restore_in_neighbors()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ 5 ], "in neighbors were not restored")
+        self.selection.hide_in_neighbors()
+        self.selection.restore_out_neighbors()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ 0, 2 ], "in neighbors were not restored")
+        self.selection.hide_out_neighbors()
+        self.selection.restore_complement()
+        self.assertItemsEqual(self.ig.hidden_vertices, [ ], "vertices are hidden after restore")
+
     def test_deselect_all(self):
 
         self.ig.do_press_action(0)
