@@ -6,7 +6,7 @@ from interactive_graph.graph import InteractiveGraph
 from interactive_graph.selection import Selection
 
 class TestSelection(unittest.TestCase):
-    
+
     def setUp(self):
         
         fig, ax = plt.subplots()
@@ -66,10 +66,6 @@ class TestSelection(unittest.TestCase):
         self.assertItemsEqual(self.ig.hidden_vertices, [ 3, 4, 5 ], "selection complement is not hidden")
         self.selection.restore_complement()
         self.assertItemsEqual(self.ig.hidden_vertices, [ ], "vertices are hidden after restore")
-        self.ig.hide_vertex(5)
-        self.selection.hide_complement()
-        self.selection.restore_complement()
-        self.assertItemsEqual(self.ig.hidden_vertices, [ 5 ], "previously hidden vertex is visible after restore complement")
 
     def test_deselect_all(self):
 
