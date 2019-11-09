@@ -34,14 +34,14 @@ class TestBulkGraphOps(unittest.TestCase):
     def test_bulk_add(self):
 
         vx_results, edge_results = self.add_all()
-        self.assertItemsEqual(vx_results, [ ], "add vertices returned with errors")
-        self.assertItemsEqual(edge_results, [ ], "add edge returned with errors")
+        self.assertCountEqual(vx_results, [ ], "add vertices returned with errors")
+        self.assertCountEqual(edge_results, [ ], "add edge returned with errors")
 
     def test_bulk_hide_vertices(self):
 
         self.add_all()
         results = self.hide_vertices()
-        self.assertItemsEqual(results, [ ], "hide vertices returned with errors")
+        self.assertCountEqual(results, [ ], "hide vertices returned with errors")
         self.assertEqual(len(self.ig.visible_vertices), 0, 
           "number of vertices was %d, expected 0" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 6,
@@ -55,7 +55,7 @@ class TestBulkGraphOps(unittest.TestCase):
 
         self.add_all()
         results = self.hide_edges()
-        self.assertItemsEqual(results, [ ], "hide edges returned with errors")
+        self.assertCountEqual(results, [ ], "hide edges returned with errors")
         self.assertEqual(len(self.ig.visible_vertices), 6, 
           "number of vertices was %d, expected 6" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,
@@ -70,7 +70,7 @@ class TestBulkGraphOps(unittest.TestCase):
         self.add_all()
         self.hide_vertices()
         results = self.ig.restore_vertices([ vid for vid, xy, l in self.vertices ])
-        self.assertItemsEqual(results, [ ], "restore vertices returned with errors")
+        self.assertCountEqual(results, [ ], "restore vertices returned with errors")
         self.assertEqual(len(self.ig.visible_vertices), 6, 
           "number of vertices was %d, expected 6" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,
@@ -85,7 +85,7 @@ class TestBulkGraphOps(unittest.TestCase):
         self.add_all()
         self.hide_edges()
         results = self.ig.restore_edges([ eid for eid, s, t in self.edges ])
-        self.assertItemsEqual(results, [ ], "restore edges returned with errors")
+        self.assertCountEqual(results, [ ], "restore edges returned with errors")
         self.assertEqual(len(self.ig.visible_vertices), 6, 
           "number of vertices was %d, expected 6" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,
@@ -99,7 +99,7 @@ class TestBulkGraphOps(unittest.TestCase):
 
         self.add_all()
         results = self.ig.remove_vertices([ vid for vid, xy, l in self.vertices ])
-        self.assertItemsEqual(results, [ ], "remove vertices returned with errors")
+        self.assertCountEqual(results, [ ], "remove vertices returned with errors")
         self.assertEqual(len(self.ig.visible_vertices), 0, 
           "number of vertices was %d, expected 0" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,
@@ -113,7 +113,7 @@ class TestBulkGraphOps(unittest.TestCase):
 
         self.add_all()
         results = self.ig.remove_edges([ eid for eid, s, t in self.edges ])
-        self.assertItemsEqual(results, [ ], "remove edges returned with errors")
+        self.assertCountEqual(results, [ ], "remove edges returned with errors")
         self.assertEqual(len(self.ig.visible_vertices), 6, 
           "number of vertices was %d, expected 6" % len(self.ig.visible_vertices))
         self.assertEqual(len(self.ig.hidden_vertices), 0,

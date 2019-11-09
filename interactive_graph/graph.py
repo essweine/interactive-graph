@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
-from vertex import Vertex
-from edge import Edge
-from subgraph import ExpandableSubgraph
-from exceptions import *
+from .vertex import Vertex
+from .edge import Edge
+from .subgraph import ExpandableSubgraph
+from .exceptions import *
 
 class InteractiveGraph(object):
 

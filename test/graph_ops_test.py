@@ -170,27 +170,27 @@ class TestGraphOps(unittest.TestCase):
     def test_hide_and_restore(self):
 
         self.ig.hide_edge(0)
-        self.assertItemsEqual(self.ig.visible_edges, [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ], "incorrect edge set after hiding edge 0")
+        self.assertCountEqual(self.ig.visible_edges, [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ], "incorrect edge set after hiding edge 0")
         self.ig.hide_vertex(0)
         self.ig.hide_edge(5)
-        self.assertItemsEqual(self.ig.visible_edges, [ 6, 7, 8, 9, 10, 11 ], "incorrect edge set after hiding edge 5")
+        self.assertCountEqual(self.ig.visible_edges, [ 6, 7, 8, 9, 10, 11 ], "incorrect edge set after hiding edge 5")
         self.ig.hide_vertex(1)
         self.ig.hide_edge(6)
-        self.assertItemsEqual(self.ig.visible_edges, [ 7, 8, 9, 10, 11 ], "incorrect edge set after hiding edge 6")
+        self.assertCountEqual(self.ig.visible_edges, [ 7, 8, 9, 10, 11 ], "incorrect edge set after hiding edge 6")
         self.ig.hide_vertex(2)
         self.ig.hide_edge(8)
-        self.assertItemsEqual(self.ig.visible_edges, [ 9, 10, 11 ], "incorrect edge set after hiding edge 8")
+        self.assertCountEqual(self.ig.visible_edges, [ 9, 10, 11 ], "incorrect edge set after hiding edge 8")
         self.ig.hide_vertex(3)
         self.ig.hide_edge(11)
-        self.assertItemsEqual(self.ig.visible_edges, [ ], "incorrect edge set after hiding edge 11")
+        self.assertCountEqual(self.ig.visible_edges, [ ], "incorrect edge set after hiding edge 11")
 
         self.ig.restore_vertex(0)
         self.ig.restore_vertex(1)
         self.ig.restore_vertex(2)
         self.ig.restore_vertex(3)
-        self.assertItemsEqual(self.ig.visible_edges, [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ], "incorrect edge set after restoring all vertices")
+        self.assertCountEqual(self.ig.visible_edges, [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ], "incorrect edge set after restoring all vertices")
         self.ig.restore_edge(11)
-        self.assertItemsEqual(self.ig.visible_edges, [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ], "incorrect edge set after restoring edge 11")
+        self.assertCountEqual(self.ig.visible_edges, [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ], "incorrect edge set after restoring edge 11")
 
 if __name__ == '__main__':
 

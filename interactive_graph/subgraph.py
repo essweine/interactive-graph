@@ -1,4 +1,4 @@
-from exceptions import NonexistentVertexError
+from .exceptions import NonexistentVertexError
 
 class ExpandableSubgraph(object):
 

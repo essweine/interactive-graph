@@ -46,22 +46,22 @@ class TestExpandableSubgraph(unittest.TestCase):
         sg1 = self.sg.add(self.sg1_root, self.sg1_vertices, self.expanded_props, self.collapsed_props, "expanded")
         sg2 = self.sg.add(self.sg2_root, self.sg2_vertices, self.expanded_props, self.collapsed_props, "expanded")
 
-        self.assertItemsEqual(sg1, [ ], "create subgraph 1 returned with errors")
-        self.assertItemsEqual(sg2, [ ], "create subgraph 2 returned with errors")
-        self.assertItemsEqual(self.ig.visible_vertices, range(10), "vertices in expanded graphs are hidden")
+        self.assertCountEqual(sg1, [ ], "create subgraph 1 returned with errors")
+        self.assertCountEqual(sg2, [ ], "create subgraph 2 returned with errors")
+        self.assertCountEqual(self.ig.visible_vertices, range(10), "vertices in expanded graphs are hidden")
         circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_fc(), (0.0, 0.0, 0.0, 1.0), "expanded root circle does not appear in expanded graph")
 
         self.ig.do_press_action(self.sg1_root)
         circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_radius(), 0.1, "collapsed root circle does not appear in collapsed graph")
-        self.assertItemsEqual(self.ig.visible_vertices, range(3, 10), "vertices in collapsed graphs are visible")
+        self.assertCountEqual(self.ig.visible_vertices, range(3, 10), "vertices in collapsed graphs are visible")
         self.assertIn(24, self.ig.visible_edges, "edge from collapsed root to collapsed root is hidden")
         self.assertIn(25, self.ig.visible_edges, "edge from collapsed root to expanded root is hidden")
         self.assertNotIn(26, self.ig.visible_edges, "edge from collapsed graph to expanded graph is visible")
 
         self.ig.do_press_action(self.sg2_root)
-        self.assertItemsEqual(self.ig.visible_vertices, set([ self.sg1_root, self.sg2_root ]) | self.sg3_vertices,
+        self.assertCountEqual(self.ig.visible_vertices, set([ self.sg1_root, self.sg2_root ]) | self.sg3_vertices,
                 "vertices in collapsed subgraphs are visible")
         self.assertIn(24, self.ig.visible_edges, "edge from collapsed root to collapsed root is hidden")
         self.assertNotIn(25, self.ig.visible_edges, "edge from collapsed graph to collapsed graph is visible")
@@ -72,9 +72,9 @@ class TestExpandableSubgraph(unittest.TestCase):
         sg1 = self.sg.add(self.sg1_root, self.sg1_vertices, self.expanded_props, self.collapsed_props, "collapsed")
         sg2 = self.sg.add(self.sg2_root, self.sg2_vertices, self.expanded_props, self.collapsed_props, "collapsed")
 
-        self.assertItemsEqual(sg1, [ ], "create subgraph 1 returned with errors")
-        self.assertItemsEqual(sg2, [ ], "create subgraph 2 returned with errors")
-        self.assertItemsEqual(self.ig.visible_vertices, [ self.sg1_root, self.sg2_root, 8, 9 ], 
+        self.assertCountEqual(sg1, [ ], "create subgraph 1 returned with errors")
+        self.assertCountEqual(sg2, [ ], "create subgraph 2 returned with errors")
+        self.assertCountEqual(self.ig.visible_vertices, [ self.sg1_root, self.sg2_root, 8, 9 ], 
                 "vertices in collapsed subgraph are visible")
         circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_radius(), 0.1, "collapsed root circle does not appear in collapsed graph")
@@ -82,15 +82,15 @@ class TestExpandableSubgraph(unittest.TestCase):
         self.ig.do_press_action(self.sg1_root)
         circle = self.ig.get_vertex(self.sg1_root)._circle
         self.assertEqual(circle.get_fc(), (0.0, 0.0, 0.0, 1.0), "expanded root circle does not appear in expanded graph")
-        self.assertItemsEqual(self.ig.visible_vertices, self.sg1_vertices | set([ self.sg1_root, self.sg2_root ]) | set([ 8, 9 ]), 
+        self.assertCountEqual(self.ig.visible_vertices, self.sg1_vertices | set([ self.sg1_root, self.sg2_root ]) | set([ 8, 9 ]), 
                 "vertices in expanded graph are hidden")
         self.assertIn(24, self.ig.visible_edges, "edge from expanded root to collapsed root is hidden")
         self.assertNotIn(25, self.ig.visible_edges, "edge from expanded root to collapsed graph is visible")
         self.assertIn(26, self.ig.visible_edges, "edge from expanded graph to collapsed root is hidden")
 
         self.ig.do_press_action(self.sg2_root)
-        self.assertItemsEqual(self.ig.visible_vertices, range(10), "vertices in expanded graphs are hidden")
-        self.assertItemsEqual(self.ig.visible_edges, range(29), "edges in expanded graphs are hidden")
+        self.assertCountEqual(self.ig.visible_vertices, range(10), "vertices in expanded graphs are hidden")
+        self.assertCountEqual(self.ig.visible_edges, range(29), "edges in expanded graphs are hidden")
 
     def test_nested_subgraphs(self):
 
@@ -98,19 +98,19 @@ class TestExpandableSubgraph(unittest.TestCase):
         sg3 = self.sg.add(self.sg3_root, self.sg3_vertices, self.expanded_props, self.collapsed_props, "collapsed")
         sg2 = self.sg.add(self.sg2_root, self.sg2_vertices, self.expanded_props, self.collapsed_props, "collapsed")
 
-        self.assertItemsEqual(sg1, [ ], "create subgraph 1 returned with errors")
-        self.assertItemsEqual(sg2, [ ], "create subgraph 2 returned with errors")
-        self.assertItemsEqual(sg3, [ ], "create subgraph 3 returned with errors")
-        self.assertItemsEqual(self.ig.visible_vertices, [ self.sg1_root, self.sg2_root ], 
+        self.assertCountEqual(sg1, [ ], "create subgraph 1 returned with errors")
+        self.assertCountEqual(sg2, [ ], "create subgraph 2 returned with errors")
+        self.assertCountEqual(sg3, [ ], "create subgraph 3 returned with errors")
+        self.assertCountEqual(self.ig.visible_vertices, [ self.sg1_root, self.sg2_root ], 
             "vertices in collapsed subgraph are visible")
 
         self.ig.do_press_action(self.sg2_root)
-        self.assertItemsEqual(self.ig.visible_vertices, range(3, 8), "nested subgraph is visible")
+        self.assertCountEqual(self.ig.visible_vertices, range(3, 8), "nested subgraph is visible")
         self.ig.do_press_action(self.sg3_root)
-        self.assertItemsEqual(self.ig.visible_vertices, range(3, 10), "nested graph was not expanded")
+        self.assertCountEqual(self.ig.visible_vertices, range(3, 10), "nested graph was not expanded")
         self.ig.do_press_action(self.sg2_root)
         self.ig.do_press_action(self.sg2_root)
-        self.assertItemsEqual(self.ig.visible_vertices, range(3, 8), "nested graph was not collapsed")
+        self.assertCountEqual(self.ig.visible_vertices, range(3, 8), "nested graph was not collapsed")
 
 if __name__ == '__main__':
 

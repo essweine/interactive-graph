@@ -25,7 +25,7 @@ n_edges = n_vx * 3
 groups = [ set() for n in range(n_groups) ]
 vprops, sprops = [ ], [ ]
 for n in range(n_groups):
-    c = choice(mplcolors.CSS4_COLORS.keys())
+    c = choice(list(mplcolors.CSS4_COLORS.keys()))
     vprops.append({ "radius": 0.01, "color": mcolors.to_rgba(c, 0.6) })
     sprops.append({ "radius": 0.01, "ec": (0.0, 0.0, 0.0) })
 

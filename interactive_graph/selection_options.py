@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
-from container_elements import Toggle, Option
-from legend import InteractiveLegend
+from .container_elements import Toggle, Option
+from .legend import InteractiveLegend
 
 class SelectionOptions(object):
 

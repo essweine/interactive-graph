@@ -3,7 +3,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable, Size
 from matplotlib.axes import Axes
 from math import ceil
 
-from container_elements import VertexOptions
+from .container_elements import VertexOptions
 
 class GraphContainer(object):
 
